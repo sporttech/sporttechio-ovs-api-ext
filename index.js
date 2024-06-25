@@ -1,6 +1,7 @@
 require('dotenv').config();
 const EventSource = require('eventsource');
 const express = require('express');
+const { applyUpdate } = require('./updateModel');
 const app = express();
 const port = 3000;
 
@@ -11,11 +12,12 @@ if (!serviceUrl) {
 
 const eventSource = new EventSource(serviceUrl);
 
-let latestData = null;
+let model = {};
 
 eventSource.onmessage = function(event) {
-    latestData = JSON.parse(event.data);
-    console.log('New data received:', latestData);
+    const update = JSON.parse(event.data);
+    applyUpdate(model, update);
+    console.log('Model updated:', update);
 };
 
 eventSource.onerror = function(err) {
@@ -23,8 +25,8 @@ eventSource.onerror = function(err) {
 };
 
 app.get('/data', (req, res) => {
-    if (latestData) {
-        res.json(latestData);
+    if (model) {
+        res.json(model);
     } else {
         res.status(204).send('No data available');
     }
