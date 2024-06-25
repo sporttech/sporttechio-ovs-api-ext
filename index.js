@@ -1,9 +1,15 @@
+require('dotenv').config();
 const EventSource = require('eventsource');
 const express = require('express');
 const app = express();
 const port = 3000;
 
-const eventSource = new EventSource('YOUR_SERVICE_URL');
+const serviceUrl = process.env.SERVICE_URL;
+if (!serviceUrl) {
+    throw new Error('SERVICE_URL environment variable is not set.');
+}
+
+const eventSource = new EventSource(serviceUrl);
 
 let latestData = null;
 
