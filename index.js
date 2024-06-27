@@ -51,7 +51,7 @@ eventSource.onerror = function(err) {
     console.error('EventSource failed:', err);
 };
 eventSource.onopen = function(event) {
-    console.log('Connection established:', serviceUrl);
+    console.log('=== Connection established:', serviceUrl);
     Object.keys(model).forEach(key => delete model[key]);
 };
 
@@ -85,6 +85,7 @@ app.get('/data/lu', (req, res) => {
 const extensions = process.env.EXTENSIONS ? process.env.EXTENSIONS.split(',') : [];
 console.log(`sporttech.io API Adapter loading extensions: ${extensions}`);
 extensions.forEach(extensionName => {
+    console.log(`=== Loading extension: ${extensionName.trim()}`);
     try {
         const extension = require(`./extensions/${extensionName.trim()}`);
         if (typeof extension.register === 'function') {
@@ -99,7 +100,7 @@ extensions.forEach(extensionName => {
 });
 
 app.listen(port, () => {
-    console.log(`sporttech.io API Adapter listening at http://localhost:${port}`);
+    console.log(`=== sporttech.io API Adapter listening at http://localhost:${port}`);
     logRoutes(app);
 });
 

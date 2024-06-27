@@ -151,9 +151,9 @@ module.exports.register = function(app, model, addUpdateListner) {
     if (!OVS) {
         throw new Error('OVS_URL environment variable is not set.');
     }
-    const cfg = process.env.CONFIG_VMIX_LIVESPORT_FILE;
+    const cfg = process.env.CONFIG_VMIX_LIVESPORT_AG_FILE;
     if (!cfg) {
-        console.warn('CONFIG_VMIX_LIVESPORT_FILE environment variable is not set, will use default (empty) config');
+        console.warn('CONFIG_VMIX_LIVESPORT_AG_FILE environment variable is not set, will use default (empty) config');
     } else {
         console.log(`Loading config from ${cfg}`);
         config = require(cfg);
