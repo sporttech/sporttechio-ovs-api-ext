@@ -124,20 +124,20 @@ function onActiveGroups() {
                     break;
                 }
                 const f = M.Frames[fid];
-                const aptID = s.FrameTypes[fidx];
+                const aptID = c.Discipline;
                 const athlete = {
                     stageID: s.ID,
                     app: config.apparatus[aptID].name,
                     group: s.Groups.indexOf(g.ID) + 1,
                     routine: "R" + (fidx + 1),
                     state: config.frameState[f.State],
-                    name: a.Surname + " " + a.GivenName,
+                    name: performancePresent(p, M).view,
                     repr: bindTeam(a, config),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
-                    scoreRoutine: (f.TMarkTTT_G / 1000).toFixed(3),
-                    scoreDifficulty: (f.DMarkT_G / 10).toFixed(1),
-                    scoreExecution: (f.EMarkTTT_G / 1000).toFixed(3),
-                    scorePenalties: (f.NPenaltyT_G / 10).toFixed(1),
+                    scoreRoutine: (f.MarkTTT_G / 1000).toFixed(3),
+                    scoreDifficulty: (f.DifficultyT_G / 10).toFixed(1),
+                    scoreExecution: (f.ETotalT_G / 10).toFixed(1),
+                    scorePenalties: (f.PenaltyT / 10).toFixed(1),
                     rank: p.Rank_G,
                     eventTitle: e.Title,
                     competitionTitle: c.Title,
@@ -146,10 +146,10 @@ function onActiveGroups() {
                     scorePrevRoutine: undefined
                 }
                 // Hack for second VAULT2 routine
-                if (fidx > 0 && aptID === 3) {
+                if (fidx > 0) {
                     const prevFrameID = p.Frames[fidx-1];
                     const prevFrame = M.Frames[prevFrameID];
-                    athlete.scorePrevRoutine = (prevFrame.TMarkTTT_G / 1000).toFixed(3);
+                    athlete.scorePrevRoutine = (prevFrame.MarkTTT_G / 1000).toFixed(3);
                 }
                 // Get qualification results when possible
                 const pp = getSameAthletePerformance(p, prevStage, M);
