@@ -1,4 +1,5 @@
 {
+    "root": "/vmix/bra/ag",
     "teams": {
 		"ADIEE-SC" : { "name": "ADI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADI.png.png"},
 		"AGAJO-SC" : { "name": "AGA", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/AGA.png.png"},
@@ -15,7 +16,6 @@
 		"SESI-SP" : { "name": "SES", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/SES.png.png"},
 		"SOGIPA-RS" : { "name": "SOG", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/SOG.png.png"}
 	},
-    "root": "/vmix/bra/ag",
     "frameState": {
         "0": "NSTART",
         "1": "PERFORM",

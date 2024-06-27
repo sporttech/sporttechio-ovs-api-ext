@@ -148,6 +148,9 @@ function processFrameUodate(frame) {
 }
 
 function updateFramesInFocus(updateM) {
+    if (!("Frames" in updateM)) {
+        return;
+    }
     if (Object.keys(updateM["Frames"]).length > 10) {
         // Probably that is initial model load, skipping frames monitoring
         // and filling in buffer with Panel frames
