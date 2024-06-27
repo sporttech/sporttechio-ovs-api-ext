@@ -16,6 +16,21 @@ function onModelUpdated(updateM) {
     updateFramesInFocus(updateM);
 }
 
+function performancePresent(p, M) {
+    const gid = p?.GroupID;
+    const sid = M?.Groups[gid]?.StageID;
+    const cid = M?.Stages[sid]?.CompetitionID;
+    const c = M?.Competitions[cid];
+    const a = M?.Athletes[p.Athletes[0]];
+
+    // SYN
+    if (c.Discipline === 1) {
+        const a2 = M?.Athletes[p.Athletes[1]];
+        return {a: a, view: a.Surname + "\\" + a2.Surname}
+    }
+    return {a: a, view: a.Surname + " " + a.GivenName};
+}
+
 function proccessStartListChunk(chunk) {
 	const frameData = {
 		competition: chunk.competition.Title,
@@ -23,9 +38,9 @@ function proccessStartListChunk(chunk) {
 		chunk: chunk.chunk
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
-	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
-	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.view });
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete.a, config); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete.a, config, OVS); } );
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -36,9 +51,9 @@ function proccessResultsChunk(chunk) {
 		competition: chunk.competition.Title,
 	};
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
-	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
-	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.view });
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete.a, config); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete.a, config, OVS); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
@@ -46,11 +61,19 @@ function proccessResultsChunk(chunk) {
 	return frameData;
 }
 
+
+
 function onStartLists(s_sids, chunkSize) {
-    return transformStageList(s_sids, chunkSize, M, splitStartListChunks, proccessStartListChunk)
+    const splitChunks = (data, max, sid) => {
+        return splitStartListChunks(data, max, sid, performancePresent);
+    }
+    return transformStageList(s_sids, chunkSize, M, splitChunks, proccessStartListChunk);
 }
 function onResultsLists(s_sids, chunkSize) {
-    return transformStageList(s_sids, chunkSize, M, splitResultsChunks, proccessResultsChunk)
+    const splitChunks = (data, max, sid) => {
+        return splitResultsChunks(data, max, sid, performancePresent);
+    }
+    return transformStageList(s_sids, chunkSize, M, splitChunks, proccessResultsChunk);
 }
 
 const equals = (a, b) =>

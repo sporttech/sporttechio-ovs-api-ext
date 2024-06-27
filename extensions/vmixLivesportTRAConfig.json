@@ -25,6 +25,8 @@
     },
     "apparatus": {
         "0":  { "name": "TIND",    "icon": ""},
-        "1":  { "name": "TSYN",    "icon": ""}
+        "1":  { "name": "TSYN",    "icon": ""},
+        "2":  { "name": "DMT",    "icon": ""},
+        "3":  { "name": "TUM",    "icon": ""}
     }
 }
