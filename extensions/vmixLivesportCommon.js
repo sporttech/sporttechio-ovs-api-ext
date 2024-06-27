@@ -73,8 +73,17 @@ function newResultsChunk(event, competition, stage) {
     };
 }
 
+function getPerformanceRank(p) {
+    return p.Rank_G;
+}
+function getPerformanceScore(p) {
+    return p.MarkTTT_G;
+}
+function getPerformanceRepresentation(p, M) {
+    return M.Athletes[performance.Athletes[0]];
+}
 
-function splitResultsChunks(data, max, sid) {
+function splitResultsChunks(data, max, sid, getRank = getPerformanceRank, getScore = getPerformanceScore, getRepr = getPerformanceRepresentation) {
 	const performances = [];
 	const event = data.Event;
 	const stage = data.Stages[sid];
@@ -85,9 +94,9 @@ function splitResultsChunks(data, max, sid) {
 		for (const pid of group.Performances) {
 			const performance = data.Performances[pid];
 			performances.push({
-				athlete: data.Athletes[performance.Athletes[0]],
-				rank: performance.Rank_G,
-				score: performance.MarkTTT_G,
+				athlete: getRepr(performance, data), 
+				rank: getPerformanceRank(performance),
+				score: getPerformanceScore(performance),
 			});
 		}
     }
