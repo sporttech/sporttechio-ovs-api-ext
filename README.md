@@ -34,3 +34,7 @@ SERVICE_URL=http://localhost:9003/api/event?fetch_event_competitions=true&fetch_
 ```
 node index.js
 ```
+or with monitoring:
+```
+npx nodemon index.js
+```
