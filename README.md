@@ -22,19 +22,48 @@ git clone git@github.com:sporttech/sporttechio-ovs-api-ext.git
 cd sporttechio-ovs-api-ext
 npm install
 ```
-2. Edite the OVS URL and request
+2. Edit the OVS URL, request, and config in .env
 
-Edite the OVS basename and request inside the .env file i.e.
+Edit the OVS basename and request inside the .env file i.e.
 
 ```
-SERVICE_URL=http://localhost:9003/api/event?fetch_event_competitions=true&fetch_competition_stages=true&fetch_stage_groups=true&fetch_group_performances=true&fetch_performance_frames=true&fetch_performance_athletes=true
+OVS_URL=https://sporttech.io/events/0aaa0cc5-bc38-4ce6-6dd0-eff5a170a7ed/ovs
+OVS_API_REQUEST=/api/event?fetch_event_competitions=true&fetch_competition_stages=true&fetch_stage_groups=true&fetch_group_performances=true&fetch_performance_frames=true&fetch_performance_athletes=true&fetch_panels=true
+EXTENSIONS=vmixLivesportAG,vmixLivesportTRA
+CONFIG_VMIX_LIVESPORT_AG_FILE="./vmixLivesportAGConfig.json"
+CONFIG_VMIX_LIVESPORT_TRA_FILE="./vmixLivesportTRAConfig.json"
 ```
 
-3. Run
+## Run
 ```
 node index.js
 ```
 or with monitoring:
 ```
 npx nodemon index.js
+```
+
+## Docker local
+Build docker image:
+```
+docker build -t sporttech.io/api-ext .
+```
+Run image on the host 3300 port:
+```
+ docker run --name "sporttech-api-ext" -p 3300:3000 -v ./.env:/home/node/sporttech.io/api-ext/.env -v ./extensions/vmixLivesportTRAConfig.json:/home/node/sporttech.io/api-ext/extensions/vmixLivesportTRAConfig.json -d sporttech.io/api-ext
+ ```
+
+Push to public dockerhub:
+```
+docker build --platform linux/amd64 -t sporttech.io/api-ext . 
+docker tag sporttech.io/api-ext psholukha/sporttech.io-api-ext
+docker push psholukha/sporttech.io-api-ext
+```
+
+## Docker on server
+* Config files are stored in `/sporttech.io/api-ext`, use vi/nano to edit files
+* Download docker image: `docker pull psholukha/sporttech.io-api-ext`
+* Run image: 
+```
+ docker run --name "sporttech-api-ext" -p 3300:3000 -v /sporttech.io/api-ext/env:/home/node/sporttech.io/api-ext/.env -v /sporttech.io/api-ext/config.json:/home/node/sporttech.io/api-ext/extensions/config.json -d psholukha/sporttech.io-api-ext
 ```
