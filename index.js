@@ -1,7 +1,7 @@
 require('dotenv').config();
 const EventSource = require('eventsource');
 const express = require('express');
-const { applyUpdate } = require('./updateModel');
+const { applyUpdate, isEmptyUpdate } = require('./updateModel');
 const { logRoutes } = require('./logRoutes');
 const app = express();
 const port = 3000;
@@ -14,13 +14,32 @@ if (!serviceUrl) {
 const eventSource = new EventSource(serviceUrl);
 
 let model = {};
+const updateListners = [];
+function addUpdateListner(listner) {
+    updateListners.push(listner); 
+}
 
 eventSource.onmessage = function(event) {
+    const start = process.hrtime();
     const update = JSON.parse(event.data);
-    applyUpdate(model, update);
-    if (Object.keys(update).length > 0) {
-        model.lastUpdate = new Date();
+    if (isEmptyUpdate(update)) {
+        return;
     }
+
+    applyUpdate(model, update);
+    model.lastUpdate = new Date();
+    updateListners.forEach((ul) => {
+        try {
+            ul(update, model);
+        } catch (e) {
+            console.warn("Model update listner failed:");
+            console.error(e);
+        }
+    });
+
+    const [seconds, nanoseconds] = process.hrtime(start);
+    const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
+    console.info(`EVENTSOURCE model-update - ${milliseconds.toFixed(2)} ms`);
 };
 
 eventSource.onerror = function(err) {
@@ -37,7 +56,7 @@ app.use((req, res, next) => {
     res.on('finish', () => {
         const [seconds, nanoseconds] = process.hrtime(start);
         const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
-        console.log(`${req.method} ${req.originalUrl} [${res.statusCode}] - ${milliseconds.toFixed(2)} ms`);
+        console.info(`${req.method} ${req.originalUrl} [${res.statusCode}] - ${milliseconds.toFixed(2)} ms`);
     });
     next();
 });
@@ -63,7 +82,7 @@ extensions.forEach(extensionName => {
     try {
         const extension = require(`./extensions/${extensionName.trim()}`);
         if (typeof extension.register === 'function') {
-            extension.register(app, model);
+            extension.register(app, model, addUpdateListner);
             console.log(`Loaded extension: ${extensionName.trim()}`);
         } else {
             console.warn(`Extension ${extensionName.trim()} does not export a register function.`);

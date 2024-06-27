@@ -36,7 +36,12 @@ function applyUpdate(model, update) {
     extendPreservingIdent(model, update);
 }
 
+function isEmpty(update) {
+    return Object.keys(update).length === 0;
+}
+
 module.exports = {
-    applyUpdate
+    applyUpdate,
+    isEmptyUpdate: isEmpty
 };
 
