@@ -4,7 +4,7 @@ const express = require('express');
 const { applyUpdate, isEmptyUpdate } = require('./updateModel');
 const { logRoutes } = require('./logRoutes');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 const ovsUrl = process.env.OVS_URL;
 if (!ovsUrl) {
@@ -19,13 +19,23 @@ const serviceUrl = ovsUrl + ovsEp;
 const eventSource = new EventSource(serviceUrl);
 
 let model = {};
+let shouldClearModel = false;
+
 const updateListners = [];
 function addUpdateListner(listner) {
     updateListners.push(listner); 
 }
 
+function clearModel() {
+    shouldClearModel = false;
+    Object.keys(model).forEach(key => delete model[key]);
+
+}
 eventSource.onmessage = function(event) {
     const start = process.hrtime();
+    if (shouldClearModel) {
+        clearModel();
+    }
     const update = JSON.parse(event.data);
     if (isEmptyUpdate(update)) {
         return;
@@ -52,7 +62,7 @@ eventSource.onerror = function(err) {
 };
 eventSource.onopen = function(event) {
     console.log('=== Connection established:', serviceUrl);
-    Object.keys(model).forEach(key => delete model[key]);
+    shouldClearModel = true;
 };
 
 // Middleware to calculate request processing time
