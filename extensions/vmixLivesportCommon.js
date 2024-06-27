@@ -140,7 +140,10 @@ function processFrameUodate(frame) {
         }
         const state = frame.State;
         if (state in F_STATES) {
-            recentFramesInFoucs.enq({ID: frame.ID, state: F_STATES[state]});
+            recentFramesInFoucs.enq({
+                ID: frame.ID, 
+                state: F_STATES[state]
+            });
         }
 }
 
@@ -170,6 +173,26 @@ function recentFrames() {
     return recentFramesInFoucs.toarray();
 }
 
+function recentGroups(M) {
+    const frames = recentFrames();
+    const gids = [];
+    for (const fdata of frames) {
+        const fid = fdata.ID;
+        const pid = M?.Frames[fid]?.PerformanceID;
+        if (pid === undefined) {
+            continue;
+        }
+        const gid = M?.Performances[pid]?.GroupID;
+        if (gid === undefined) {
+            continue;
+        }
+        gids.push(gid);
+    }
+    const groups = Array.from(new Set(gids));
+    groups.sort();
+    return groups;
+}
+
 
 module.exports = {
     transformStageList,
@@ -179,5 +202,6 @@ module.exports = {
     bindTeam,
     bindTeamFlag,
     updateFramesInFocus,
-    recentFrames
+    recentFrames,
+    recentGroups
 };

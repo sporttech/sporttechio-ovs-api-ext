@@ -15,5 +15,24 @@
 		"SESI-SP" : { "name": "SES", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/SES.png.png"},
 		"SOGIPA-RS" : { "name": "SOG", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/SOG.png.png"}
 	},
-    "root": "/vmix/bra/ag"
+    "root": "/vmix/bra/ag",
+    "frameState": {
+        "0": "NSTART",
+        "1": "PERFORM",
+        "2": "SCORING",
+        "3": "PUBLISHED",
+        "4": "FAILED"
+    },
+    "apparatus": {
+        "1":  { "name": "FLOOR",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/SOLO.png"},
+        "2":  { "name": "VAULT",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/MESA.png"},
+        "3":  { "name": "VAULT2",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/MESA.png"},
+        "4":  { "name": "POMMEL",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/CAVALO_ALCAS.png"},
+        "5":  { "name": "RINGS",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/ARGOLA.png"},
+        "6":  { "name": "PBARS",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/PARALELAS.png"},
+        "7":  { "name": "HBAR",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/FIXA.png"},
+        "8":  { "name": "UBAR",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/ASSIMETRICAS.png"},
+        "9":  { "name": "BEAM",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/TRAVE.png"},
+        "10": { "name": "REST",     "icon": ""}
+    }
 }
