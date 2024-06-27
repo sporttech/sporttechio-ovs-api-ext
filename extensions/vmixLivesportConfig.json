@@ -1,0 +1,19 @@
+{
+    "teams": {
+		"ADIEE-SC" : { "name": "ADI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADI.png.png"},
+		"AGAJO-SC" : { "name": "AGA", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/AGA.png.png"},
+		"AGITH-SP" : { "name": "AGI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/AGI.png.png"},
+		"CEGIN-PR" : { "name": "CEG", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/CEG.png.png"},
+		"CRF-RJ" : { "name": "CRF", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/CRF.png.png"},
+		"ECP-SP" : { "name": "ECP", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ECP.png.png"},
+		"GNU-RS" : { "name": "GNU", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/GNU.png"},
+		"IGAP-PR" : { "name": "IGA", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/IGA.png.png"},
+		"JURERÊ-SC" : { "name": "JUR", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/JUR.png.png"},
+		"MSGA-GO" : { "name": "MS", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/MS.png.png"},
+		"MTC-MG" : { "name": "MTC", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/MTC.png.png"},
+		"OSASCO-SP" : { "name": "OSA", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/OSA.png.png"},
+		"SESI-SP" : { "name": "SES", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/SES.png.png"},
+		"SOGIPA-RS" : { "name": "SOG", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/SOG.png.png"}
+	},
+    "root": "/vmix/bra/ag"
+}

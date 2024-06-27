@@ -6,11 +6,16 @@ const { logRoutes } = require('./logRoutes');
 const app = express();
 const port = 3000;
 
-const serviceUrl = process.env.SERVICE_URL;
-if (!serviceUrl) {
-    throw new Error('SERVICE_URL environment variable is not set.');
+const ovsUrl = process.env.OVS_URL;
+if (!ovsUrl) {
+    throw new Error('OVS_URL environment variable is not set.');
+}
+const ovsEp = process.env.OVS_API_REQUEST;
+if (!ovsEp) {
+    throw new Error('OVS_API_REQUEST environment variable is not set.');
 }
 
+const serviceUrl = ovsUrl + ovsEp;
 const eventSource = new EventSource(serviceUrl);
 
 let model = {};
@@ -78,6 +83,7 @@ app.get('/data/lu', (req, res) => {
 
 
 const extensions = process.env.EXTENSIONS ? process.env.EXTENSIONS.split(',') : [];
+console.log(`sporttech.io API Adapter loading extensions: ${extensions}`);
 extensions.forEach(extensionName => {
     try {
         const extension = require(`./extensions/${extensionName.trim()}`);

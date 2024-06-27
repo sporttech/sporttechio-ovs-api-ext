@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "circular-buffer": "^1.0.3",
     "dotenv": "^16.4.5",
     "eventsource": "^2.0.2",
     "express": "^4.19.2"
