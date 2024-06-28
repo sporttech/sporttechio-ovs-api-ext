@@ -10,7 +10,6 @@ This project is an API adapter built with Node.js. It connects to a OVS using Ev
 ## Requirements
 
 - Node.js
-- npm (Node Package Manager)
 - Docker (optional, for containerized deployment)
 
 ## Installation
@@ -43,7 +42,21 @@ or with monitoring:
 npx nodemon index.js
 ```
 
-## Docker local
+## Extending API
+
+To extend API one should create `.js` file inside the extensions folder, i.e. `extensions/newEndpoint.js`. 
++ Use `vmixLovesportTRA.js` as example. 
++ Module should export `register` function:
+  + `export async function register(app, model, addUpdateListner)`
+  + This function will be called on application start
+  + `app` is express instance, use it to add the endpoints
+  + `model` is the data object that will contain up-to-date copy of the data from OVS
+  + `addUpdateListner` callback function allow to register callback for any model update
++ To load extension on boot edit .env file, add extension name to `EXTENSIONS` section i.e. `EXTENSIONS=newEndpoint`
++ One can use additional enviroment variables, i.e. to pass config filename to the extension
+
+
+## Docker local build / run
 Build docker image:
 ```
 docker build -t sporttech.io/api-ext .
@@ -60,7 +73,7 @@ docker tag sporttech.io/api-ext psholukha/sporttech.io-api-ext
 docker push psholukha/sporttech.io-api-ext
 ```
 
-## Docker on server
+## Docker on server notes
 * Config files are stored in `/sporttech.io/api-ext`, use vi/nano to edit files
 * Download docker image: `docker pull psholukha/sporttech.io-api-ext`
 * Stop running container: `docker stop CONTRAINER_ID`
