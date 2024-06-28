@@ -19,6 +19,9 @@
     "internal-ip": "^7.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.6.0",
+    "eslint": "^9.6.0",
+    "globals": "^15.6.0",
     "nodemon": "^3.1.4"
   }
 }

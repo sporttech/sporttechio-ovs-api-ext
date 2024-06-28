@@ -66,7 +66,7 @@ eventSource.onmessage = function(event) {
 eventSource.onerror = function(err) {
     console.error(clc.red('EventSource failed:'), err);
 };
-eventSource.onopen = function(event) {
+eventSource.onopen = function() {
     console.log(clc.green('=== Connection established:'), serviceUrl);
     shouldClearModel = true;
 };

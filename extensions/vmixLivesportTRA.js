@@ -104,7 +104,7 @@ function getSameAthletePerformance(pRef, s, M) {
 
 function onActiveGroups() {
     const groups = recentGroups(M);
-    rows = [];
+    const rows = [];
     for (const gid of groups) {
         const g = M.Groups[gid];
         const s = M.Stages[g.StageID];
