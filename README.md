@@ -1,5 +1,5 @@
 # sporttech.io OVS API extension 
-This project is an API adapter built with Node.js. It connects to a OVS using EventSource, updates an in-memory data model, and exposes the data via an HTTP API.
+This project is an API adapter built with Node.js. It connects to a OVS using EventSource, updates an in-memory data model, and exposes proccessed data via an HTTP API.
 
 ## Features
 
@@ -45,7 +45,7 @@ npx nodemon index.js
 ## Extending API
 
 To extend API one should create `.js` file inside the extensions folder, i.e. `extensions/newEndpoint.js`. 
-+ Use `vmixLovesportTRA.js` as example. 
++ Use `vmixLivesportTRA.js` as example. 
 + Module should export `register` function:
   + `export async function register(app, model, addUpdateListner)`
   + This function will be called on application start
