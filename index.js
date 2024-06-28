@@ -1,5 +1,6 @@
 require('dotenv').config();
 const EventSource = require('eventsource');
+const clc = require("cli-color");
 const express = require('express');
 const { applyUpdate, isEmptyUpdate } = require('./updateModel');
 const { logRoutes } = require('./logRoutes');
@@ -54,14 +55,15 @@ eventSource.onmessage = function(event) {
 
     const [seconds, nanoseconds] = process.hrtime(start);
     const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
-    console.info(`EVENTSOURCE model-update - ${milliseconds.toFixed(2)} ms`);
+    const date = new Date();
+    console.info(clc.blue(`${date.toLocaleTimeString()}:`), `EVENTSOURCE model-update - `, clc.whiteBright(`${milliseconds.toFixed(2)} ms`));
 };
 
 eventSource.onerror = function(err) {
-    console.error('EventSource failed:', err);
+    console.error(clc.red('EventSource failed:'), err);
 };
 eventSource.onopen = function(event) {
-    console.log('=== Connection established:', serviceUrl);
+    console.log(clc.green('=== Connection established:'), serviceUrl);
     shouldClearModel = true;
 };
 
@@ -71,7 +73,8 @@ app.use((req, res, next) => {
     res.on('finish', () => {
         const [seconds, nanoseconds] = process.hrtime(start);
         const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
-        console.info(`${req.method} ${req.originalUrl} [${res.statusCode}] - ${milliseconds.toFixed(2)} ms`);
+        const date = new Date();
+        console.info(clc.blue(`${date.toLocaleTimeString()}:`), `${req.method} ${req.originalUrl} [${res.statusCode}] -`, clc.whiteBright(`${milliseconds.toFixed(2)} ms`));
     });
     next();
 });
@@ -100,17 +103,18 @@ extensions.forEach(extensionName => {
         const extension = require(`./extensions/${extensionName.trim()}`);
         if (typeof extension.register === 'function') {
             extension.register(app, model, addUpdateListner);
-            console.log(`Loaded extension: ${extensionName.trim()}`);
+            console.log(clc.green(`Loaded extension:`), `${extensionName.trim()}`);
         } else {
             console.warn(`Extension ${extensionName.trim()} does not export a register function.`);
         }
     } catch (error) {
-        console.error(`Failed to load extension ${extensionName.trim()}:`, error);
+        console.error(clc.bgRed(`Failed to load extension`), `${extensionName.trim()}:`, error);
     }
 });
 
 app.listen(port, () => {
-    console.log(`=== sporttech.io API Adapter listening at http://localhost:${port}`);
+    console.log(clc.bgGreen(`=== sporttech.io API Adapter listening at`), `http://localhost:${port}`);
+    console.log(clc.green(`OVS url:`), `${ovsUrl}/`);
     logRoutes(app);
 });
 
