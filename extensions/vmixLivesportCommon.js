@@ -1,4 +1,5 @@
 import buffer from "circular-buffer";
+import { readFile } from 'fs/promises';
 
 function transformStageList(s_sids, chunkSize, M, stageChunkFunction, tranformFunction) {
     const chunks = [];
@@ -204,6 +205,44 @@ function recentGroups(M) {
     return groups;
 }
 
+async function loadCommonConfig(configVar, configDefault) {
+    const OVS = process.env.OVS_URL;
+    let config = configDefault;
+    if (!OVS) {
+        throw new Error('OVS_URL environment variable is not set.');
+    }
+    const cfg = process.env[configVar];
+    if (!cfg) {
+        console.warn(`${configVar} environment variable is not set, will use default (empty) config`);
+    } else {
+        console.log(`Loading config from ${cfg}`);
+        config = JSON.parse(await readFile(new URL(cfg, import.meta.url)));
+    }
+    return [OVS, config]
+}
+
+function registerCommonEndpoints(app, config, addUpdateListner, onStartLists, onResultsLists, onActiveGroups) {
+    addUpdateListner(updateFramesInFocus);
+    app.get(config.root + '/recent-frames', (req, res) => {
+        res.json({ recentFramesInFoucs: recentFrames()});
+    });
+    app.get(config.root + '/startlists/:sids/chunk/:size', (req, res) => {
+        const data = onStartLists(req.params.sids, req.params.size) 
+        res.json(data);
+    });
+    app.get(config.root + '/results/:sids/chunk/:size', (req, res) => {
+        const data = onResultsLists(req.params.sids, req.params.size) 
+        res.json(data);
+    });
+    app.get(config.root + '/active-groups', (req, res) => {
+        const data = onActiveGroups();
+        res.json(data);
+    });
+    app.get(config.root + '/config', (req, res) => {
+        res.json(config);
+    });
+}
+
 
 export {
     transformStageList,
@@ -214,5 +253,7 @@ export {
     bindTeamFlag,
     updateFramesInFocus,
     recentFrames,
-    recentGroups
+    recentGroups,
+    loadCommonConfig,
+    registerCommonEndpoints
 };

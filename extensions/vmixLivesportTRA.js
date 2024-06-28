@@ -1,8 +1,6 @@
-import { readFile } from 'fs/promises';
-
 import { transformStageList, splitStartListChunks, splitResultsChunks, 
-        updateFrameData, bindTeam, bindTeamFlag, updateFramesInFocus,
-        recentFrames, recentGroups } from './vmixLivesportCommon.js';
+        updateFrameData, bindTeam, bindTeamFlag,
+        recentGroups, loadCommonConfig, registerCommonEndpoints} from './vmixLivesportCommon.js';
 
 let M = {};
 
@@ -13,10 +11,6 @@ let config = {
     frameState: {},
     apparatus: {}
 };
-
-function onModelUpdated(updateM) {
-    updateFramesInFocus(updateM);
-}
 
 function performancePresent(p, M) {
     const gid = p?.GroupID;
@@ -170,33 +164,7 @@ function onActiveGroups() {
 
 
 export async function register(app, model, addUpdateListner) {
-    addUpdateListner(onModelUpdated);
     M = model;
-    OVS = process.env.OVS_URL;
-    if (!OVS) {
-        throw new Error('OVS_URL environment variable is not set.');
-    }
-    const cfg = process.env.CONFIG_VMIX_LIVESPORT_TRA_FILE;
-    if (!cfg) {
-        console.warn('CONFIG_VMIX_LIVESPORT_TRA_FILE environment variable is not set, will use default (empty) config');
-    } else {
-        console.log(`Loading config from ${cfg}`);
-        config = JSON.parse(await readFile(new URL(cfg, import.meta.url)));
-    }
-
-    app.get(config.root + '/recent-frames', (req, res) => {
-        res.json({ recentFramesInFoucs: recentFrames()});
-    });
-    app.get(config.root + '/startlists/:sids/chunk/:size', (req, res) => {
-        const data = onStartLists(req.params.sids, req.params.size) 
-        res.json(data);
-    });
-    app.get(config.root + '/results/:sids/chunk/:size', (req, res) => {
-        const data = onResultsLists(req.params.sids, req.params.size) 
-        res.json(data);
-    });
-    app.get(config.root + '/active-groups', (req, res) => {
-        const data = onActiveGroups();
-        res.json(data);
-    });
+    [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_TRA_FILE", config);
+    registerCommonEndpoints(app, config, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
 };
