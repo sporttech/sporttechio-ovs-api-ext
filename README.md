@@ -63,7 +63,12 @@ docker push psholukha/sporttech.io-api-ext
 ## Docker on server
 * Config files are stored in `/sporttech.io/api-ext`, use vi/nano to edit files
 * Download docker image: `docker pull psholukha/sporttech.io-api-ext`
+* Stop running container: `docker stop CONTRAINER_ID`
+* List all containers, including stopped: `docker ps -a`
+* Rename container: `docker rename CONTAINER_ID NEW_NAME`
 * Run image: 
 ```
  docker run --name "sporttech-api-ext" -p 3300:3000 -v /sporttech.io/api-ext/env:/home/node/sporttech.io/api-ext/.env -v /sporttech.io/api-ext/config.json:/home/node/sporttech.io/api-ext/extensions/config.json -d psholukha/sporttech.io-api-ext
 ```
+* Check running container ID: `docker ps`
+* Restart running container, to update env or config: `docker restart CONTAINER_ID`
