@@ -1,6 +1,6 @@
 {
   "name": "sporttech.io-api-example",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,7 +16,7 @@
     "dotenv": "^16.4.5",
     "eventsource": "^2.0.2",
     "express": "^4.19.2",
-    "internal-ip": "^8.0.0"
+    "internal-ip": "^7.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"

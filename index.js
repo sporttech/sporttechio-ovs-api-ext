@@ -122,7 +122,7 @@ async function loadExtensions() {
 await loadExtensions();
 
 app.listen(port, () => {
-    console.log(clc.bgGreen(`=== sporttech.io API Adapter listening at`), `http://${ip}:${port}`);
-    console.log(clc.green(`OVS url:`), `${ovsUrl}/`);
+    console.log(clc.bgGreen(`=== sporttech.io API Adapter listening at`), clc.bgCyan(`http://${ip}:${port}`));
+    console.log(clc.green(`OVS url:`), clc.bgCyan(`${ovsUrl}/`));
     logRoutes(app);
 });
