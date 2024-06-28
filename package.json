@@ -8,8 +8,8 @@
   "keywords": [],
   "author": "",
   "type": "module",
-  "license": "ISC",
-  "description": "",
+  "license": "Apache-2.0",
+  "description": "This project is an API adapter built with Node.js. It connects to a sporttech.io OVS using EventSource, updates an in-memory data model, and exposes proccessed data via an HTTP API.",
   "dependencies": {
     "circular-buffer": "^1.0.3",
     "cli-color": "^2.0.4",
