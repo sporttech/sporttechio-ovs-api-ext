@@ -1,11 +1,15 @@
-require('dotenv').config();
-const EventSource = require('eventsource');
-const clc = require("cli-color");
-const express = require('express');
-const { applyUpdate, isEmptyUpdate } = require('./updateModel');
-const { logRoutes } = require('./logRoutes');
+import dotenv from 'dotenv'
+import EventSource from 'eventsource';
+import clc from "cli-color";
+import express from 'express';
+import { internalIpV4Sync } from 'internal-ip';
+import { applyUpdate, isEmptyUpdate } from './updateModel.js';
+import { logRoutes } from './logRoutes.js';
+
+dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
+const ip =  internalIpV4Sync();
 
 const ovsUrl = process.env.OVS_URL;
 if (!ovsUrl) {
@@ -74,7 +78,7 @@ app.use((req, res, next) => {
         const [seconds, nanoseconds] = process.hrtime(start);
         const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
         const date = new Date();
-        console.info(clc.blue(`${date.toLocaleTimeString()}:`), `${req.method} ${req.originalUrl} [${res.statusCode}] -`, clc.whiteBright(`${milliseconds.toFixed(2)} ms`));
+        console.info(clc.blue(`${date.toLocaleTimeString()}:`), clc.yellow(`${req.ip} =>`), `${req.method} ${req.originalUrl} [${res.statusCode}] -`, clc.whiteBright(`${milliseconds.toFixed(2)} ms`));
     });
     next();
 });
@@ -95,26 +99,30 @@ app.get('/data/lu', (req, res) => {
 });
 
 
-const extensions = process.env.EXTENSIONS ? process.env.EXTENSIONS.split(',') : [];
-console.log(`sporttech.io API Adapter loading extensions: ${extensions}`);
-extensions.forEach(extensionName => {
-    console.log(`=== Loading extension: ${extensionName.trim()}`);
-    try {
-        const extension = require(`./extensions/${extensionName.trim()}`);
-        if (typeof extension.register === 'function') {
-            extension.register(app, model, addUpdateListner);
-            console.log(clc.green(`Loaded extension:`), `${extensionName.trim()}`);
-        } else {
-            console.warn(`Extension ${extensionName.trim()} does not export a register function.`);
+
+async function loadExtensions() {
+    const extensions = process.env.EXTENSIONS ? process.env.EXTENSIONS.split(',') : [];
+    console.log(`sporttech.io API Adapter loading extensions: ${extensions}`);
+    for (const extensionName of extensions) {
+        console.log(`=== Loading extension: ${extensionName.trim()}`);
+        try {
+            const ext = await import(`./extensions/${extensionName.trim()}.js`);
+            if (typeof ext.register === 'function') {
+                await ext.register(app, model, addUpdateListner);
+                console.log(clc.green(`Loaded extension:`), `${extensionName.trim()}`);
+            } else {
+                console.warn(`Extension ${extensionName.trim()} does not export a register function.`);
+            }
+        } catch (error) {
+            console.error(clc.bgRed(`Failed to load extension`), `${extensionName.trim()}:`, error);
         }
-    } catch (error) {
-        console.error(clc.bgRed(`Failed to load extension`), `${extensionName.trim()}:`, error);
     }
-});
+}
+
+await loadExtensions();
 
 app.listen(port, () => {
-    console.log(clc.bgGreen(`=== sporttech.io API Adapter listening at`), `http://localhost:${port}`);
+    console.log(clc.bgGreen(`=== sporttech.io API Adapter listening at`), `http://${ip}:${port}`);
     console.log(clc.green(`OVS url:`), `${ovsUrl}/`);
     logRoutes(app);
 });
-

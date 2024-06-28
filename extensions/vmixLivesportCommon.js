@@ -1,4 +1,4 @@
-const buffer = require("circular-buffer");
+import buffer from "circular-buffer";
 
 function transformStageList(s_sids, chunkSize, M, stageChunkFunction, tranformFunction) {
     const chunks = [];
@@ -15,7 +15,6 @@ function transformStageList(s_sids, chunkSize, M, stageChunkFunction, tranformFu
         }
         chunks.push(...stageChunkFunction(M, max, sid))
     }
-
 
     return chunks.map(tranformFunction);
 }
@@ -206,7 +205,7 @@ function recentGroups(M) {
 }
 
 
-module.exports = {
+export {
     transformStageList,
     splitStartListChunks,
     splitResultsChunks,

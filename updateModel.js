@@ -40,8 +40,8 @@ function isEmpty(update) {
     return Object.keys(update).length === 0;
 }
 
-module.exports = {
+export {
     applyUpdate,
-    isEmptyUpdate: isEmpty
+    isEmpty as isEmptyUpdate
 };
 

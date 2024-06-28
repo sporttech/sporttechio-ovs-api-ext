@@ -1,6 +1,8 @@
-const { transformStageList, splitStartListChunks, splitResultsChunks, 
+import { readFile } from 'fs/promises';
+
+import { transformStageList, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, updateFramesInFocus,
-        recentFrames, recentGroups } = require('./vmixLivesportCommon');
+        recentFrames, recentGroups } from './vmixLivesportCommon.js';
 
 let M = {};
 
@@ -144,7 +146,7 @@ function onActiveGroups() {
 }
 
 
-module.exports.register = function(app, model, addUpdateListner) {
+export async function register(app, model, addUpdateListner) {
     addUpdateListner(onModelUpdated);
     M = model;
     OVS = process.env.OVS_URL;
@@ -156,7 +158,7 @@ module.exports.register = function(app, model, addUpdateListner) {
         console.warn('CONFIG_VMIX_LIVESPORT_AG_FILE environment variable is not set, will use default (empty) config');
     } else {
         console.log(`Loading config from ${cfg}`);
-        config = require(cfg);
+        config = JSON.parse(await readFile(new URL(cfg, import.meta.url)));
     }
 
     app.get(config.root + '/recent-frames', (req, res) => {

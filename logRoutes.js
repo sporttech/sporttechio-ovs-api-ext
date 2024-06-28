@@ -13,6 +13,6 @@ function logRoutes(app) {
     });
 };
 
-module.exports = {
+export {
     logRoutes
 };
