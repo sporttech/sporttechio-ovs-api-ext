@@ -5,6 +5,7 @@ import express from 'express';
 import { internalIpV4Sync } from 'internal-ip';
 import { applyUpdate, isEmptyUpdate } from './updateModel.js';
 import { logRoutes } from './logRoutes.js';
+import { extend as extendDataRoute } from './routes/data.js';
 
 dotenv.config();
 const app = express();
@@ -83,23 +84,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/data', (req, res) => {
-    if (model) {
-        res.json(model);
-    } else {
-        res.status(204).send('No data available');
-    }
-});
-app.get('/data/lu', (req, res) => {
-    if (model.lastUpdate) {
-        res.json({"lastUodate": model.lastUpdate});
-    } else {
-        res.status(204).send('No data available');
-    }
-});
-
-
-
+extendDataRoute(app, model);
 async function loadExtensions() {
     const extensions = process.env.EXTENSIONS ? process.env.EXTENSIONS.split(',') : [];
     console.log(`sporttech.io API Adapter loading extensions: ${extensions}`);
