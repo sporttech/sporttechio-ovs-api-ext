@@ -188,7 +188,7 @@ function onLastResult() {
 export async function register(app, model, addUpdateListner) {
     M = model;
     [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_TRA_FILE", config);
-    registerCommonEndpoints(app, config, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
+    registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
     app.get(config.root + '/last-result', (req, res) => {
         const data = onLastResult();
         res.json(data);

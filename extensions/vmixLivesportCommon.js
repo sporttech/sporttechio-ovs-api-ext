@@ -1,5 +1,6 @@
 import buffer from "circular-buffer";
 import { readFile } from 'fs/promises';
+import { listTeams } from "../model/query.js";
 
 function transformStageList(s_sids, chunkSize, M, stageChunkFunction, tranformFunction) {
     const chunks = [];
@@ -221,7 +222,22 @@ async function loadCommonConfig(configVar, configDefault) {
     return [OVS, config]
 }
 
-function registerCommonEndpoints(app, config, addUpdateListner, onStartLists, onResultsLists, onActiveGroups) {
+function checkTeams(config, teams) {
+    let res = [];
+    for (const t of teams) {
+        const team = {
+            team: t,
+            data: "not found"
+        }
+        if (t in config.teams) {
+            team.data = config.teams[t];
+        } 
+        res.push(team);
+    }
+    return res;
+}
+
+function registerCommonEndpoints(app, config, model, addUpdateListner, onStartLists, onResultsLists, onActiveGroups) {
     addUpdateListner(updateFramesInFocus);
     app.get(config.root + '/recent-frames', (req, res) => {
         res.json({ recentFramesInFoucs: recentFrames()});
@@ -240,6 +256,9 @@ function registerCommonEndpoints(app, config, addUpdateListner, onStartLists, on
     });
     app.get(config.root + '/config', (req, res) => {
         res.json(config);
+    });
+    app.get(config.root + '/config/checkTeams', (req, res) => {
+        res.json(checkTeams(config, listTeams(model)));
     });
 }
 
