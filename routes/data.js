@@ -1,3 +1,4 @@
+import { listTeams } from "../model/query.js";
 let model = {};
 
 function getData(req, res) {
@@ -12,18 +13,9 @@ function lastUpdate(req, res) {
     }
 }
 
-function listTeams(req, res) {
-    const teams = {};
-    if (!model.Athletes) {
-        res.json({'teams':[]});
-        return;
-    }
-    for (const aid in model.Athletes) {
-        const a = model.Athletes[aid];
-        teams[a.Representing] = 1;
-    }
+function listTeamsWrap(req, res) {
     res.json({
-        'teams':Object.keys(teams).sort()
+        'teams':listTeams(model)
     });
 }
 
@@ -32,5 +24,5 @@ export function extend(app, m) {
     model = m;
     app.get('/data', getData);
     app.get('/data/lastUpdate', lastUpdate);
-    app.get('/data/listTeams', listTeams);
+    app.get('/data/listTeams', listTeamsWrap);
 };

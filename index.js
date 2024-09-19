@@ -3,7 +3,7 @@ import EventSource from 'eventsource';
 import clc from "cli-color";
 import express from 'express';
 import { internalIpV4Sync } from 'internal-ip';
-import { applyUpdate, isEmptyUpdate } from './updateModel.js';
+import { applyUpdate, isEmptyUpdate } from './model/update.js';
 import { logRoutes } from './logRoutes.js';
 import { extend as extendDataRoute } from './routes/data.js';
 
