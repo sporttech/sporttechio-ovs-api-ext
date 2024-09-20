@@ -1,7 +1,7 @@
 {
     "root": "/livesport/vmix/ag",
     "teams": {
-        "ADECO-SP" : { "name": "ADE", "flag": ""},
+        "ADECO-SP" : { "name": "ADE", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADE.png"},
 		"ADIEE-SC" : { "name": "ADI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADI.png.png"},
 		"AGAJO-SC" : { "name": "AGA", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/AGA.png.png"},
 		"AGITH-SP" : { "name": "AGI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/AGI.png.png"},
