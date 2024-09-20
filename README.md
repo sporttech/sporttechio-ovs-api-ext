@@ -63,7 +63,7 @@ docker build -t sporttech.io/api-ext .
 ```
 Run image on the host 3300 port:
 ```
- docker run --name "sporttech-api-ext" -p 3300:3000 -v ./.env:/home/node/sporttech.io/api-ext/.env -v ./extensions/vmixLivesportTRAConfig.json:/home/node/sporttech.io/api-ext/extensions/vmixLivesportTRAConfig.json -d sporttech.io/api-ext
+ docker run --name "sporttech-api-ext" -p 3300:3000 -v ./.env:/home/node/sporttech.io/api-ext/.env -v ./extensions/vmixLivesportTRAConfig.json:/home/node/sporttech.io/api-ext/extensions/vmixLivesportTRAConfig.json -v ./extensions/vmixLivesportAGConfig.json:/home/node/sporttech.io/api-ext/extensions/vmixLivesportAGConfig.json -d sporttech.io/api-ext
  ```
 
 Push to public dockerhub:
