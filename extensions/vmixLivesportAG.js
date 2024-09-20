@@ -1,6 +1,6 @@
 import { transformStageList, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
-        loadCommonConfig,
+        loadCommonConfig, getPerformanceRepresentation,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
 
 let M = {};
@@ -12,6 +12,7 @@ let config = {
     frameState: {},
     apparatus: {}
 };
+let appMap = {};
 
 function proccessStartListChunk(chunk) {
 	const frameData = {
@@ -48,6 +49,47 @@ function onStartLists(s_sids, chunkSize) {
 }
 function onResultsLists(s_sids, chunkSize) {
     return transformStageList(s_sids, chunkSize, M, splitResultsChunks, proccessResultsChunk)
+}
+
+function findApptFrameIdx(s, appt) {
+        const aptID = appMap[appt];
+        for (let i = 0; i < s.PerfomanceFramesLimit; i++) {
+            if (""+s.FrameTypes[i] === aptID) {
+                return i;
+            }    
+        }
+        return -1;
+}
+
+function onApptResultsLists(s_sids, chunkSize, appt) {
+    const getApptRank = (p, s, appt) => {
+        const idx = findApptFrameIdx(s, appt);
+        if (idx == -1) {
+            return 0;
+        }
+        return p.FrameRanks_G[idx]
+    };
+
+    const getApptScore = (p, s, appt, data) => {
+        if (appt === "VAULT") {
+            return p.MarkVaultTTT_G;
+        }
+        const idx = findApptFrameIdx(s, appt);
+        if (idx == -1) {
+            return 0;
+        }
+        const fid = p.Frames[idx];
+        return data.Frames[fid].TMarkTTT_G;
+    };
+
+    const splitResults =  (data, max, sid) => {
+        const stage = data?.Stages[sid];
+        if (!stage) {
+            return [];
+        }
+        return splitResultsChunks(data, max, sid, getPerformanceRepresentation, p => getApptRank(p, stage, appt), p => getApptScore(p, stage, appt, data));
+    }
+    return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
 }
 
 const equals = (a, b) =>
@@ -140,9 +182,21 @@ function onActiveGroups() {
     return rows;
 }
 
+function buildApptMap(config) {
+    for (const aptID in config.apparatus) {
+        const appt = config.apparatus[aptID];
+        appMap[appt.name] = aptID;
+    }
+}
+
 
 export async function register(app, model, addUpdateListner) {
     M = model;
     [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_AG_FILE", config);
+    buildApptMap(config);
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
+    app.get(config.root + '/results/:sids/:appt/chunk/:size', (req, res) => {
+        const data = onApptResultsLists(req.params.sids, req.params.size, req.params.appt);
+        res.json(data);
+    });
 };

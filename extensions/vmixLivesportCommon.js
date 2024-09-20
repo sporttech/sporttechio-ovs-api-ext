@@ -274,5 +274,6 @@ export {
     recentFrames,
     recentGroups,
     loadCommonConfig,
-    registerCommonEndpoints
+    registerCommonEndpoints,
+    getPerformanceRepresentation
 };
