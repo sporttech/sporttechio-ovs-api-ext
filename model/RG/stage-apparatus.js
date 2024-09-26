@@ -61,3 +61,7 @@ export function buildStageAppsDescription(stage, competition) {
     descr.all = descr.ind.concat(descr.group);
     return descr;
 }
+
+export function findApparatusFrameIndex(stage, apparatus) {
+   return stage.Apparatuses.indexOf(apparatus); 
+}

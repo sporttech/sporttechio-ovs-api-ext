@@ -1,9 +1,8 @@
-import { buildStageAppsDescription } from '../model/RG/stage-apparatus.js';
 import { transformStageList, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
         loadCommonConfig, getPerformanceRepresentation,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
-import { Disciplines } from '../model/RG/stage-apparatus.js';
+import { Disciplines, buildStageAppsDescription, findApparatusFrameIndex } from '../model/RG/stage-apparatus.js';
 
 let M = {};
 
@@ -53,30 +52,19 @@ function onResultsLists(s_sids, chunkSize) {
     return transformStageList(s_sids, chunkSize, M, splitResultsChunks, proccessResultsChunk)
 }
 
-function findApptFrameIdx(s, appt) {
-        const aptID = appMap[appt];
-        for (let i = 0; i < s.PerfomanceFramesLimit; i++) {
-            if (""+s.FrameTypes[i] === aptID) {
-                return i;
-            }    
-        }
-        return -1;
-}
-
 function onApptResultsLists(s_sids, chunkSize, appt) {
-    const getApptRank = (p, s, appt) => {
-        const idx = findApptFrameIdx(s, appt);
+    const getApptRank = (p, s, appt, data) => {
+        const idx = findApparatusFrameIndex(s, appMap[appt]);
         if (idx == -1) {
             return 0;
         }
-        return p.FrameRanks_G[idx]
+        const fid = p.Frames[idx];
+        const f = data.Frames[fid];
+        return f.Rank_G;
     };
 
     const getApptScore = (p, s, appt, data) => {
-        if (appt === "VAULT") {
-            return p.MarkVaultTTT_G;
-        }
-        const idx = findApptFrameIdx(s, appt);
+        const idx = findApparatusFrameIndex(s, appMap[appt]);
         if (idx == -1) {
             return 0;
         }
@@ -89,7 +77,7 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
         if (!stage) {
             return [];
         }
-        return splitResultsChunks(data, max, sid, getPerformanceRepresentation, p => getApptRank(p, stage, appt), p => getApptScore(p, stage, appt, data));
+        return splitResultsChunks(data, max, sid, getPerformanceRepresentation, p => getApptRank(p, stage, appt, data), p => getApptScore(p, stage, appt, data));
     }
     return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
 }
@@ -184,7 +172,7 @@ function onActiveGroups() {
 function buildApptMap(config) {
     for (const aptID in config.apparatus) {
         const appt = config.apparatus[aptID];
-        appMap[appt.name] = aptID;
+        appMap[appt.name] = Number(aptID);
     }
 }
 
