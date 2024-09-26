@@ -41,6 +41,7 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
+    frameData.appIcon = chunk.appIcon || "";
 
 	return frameData;
 }
@@ -72,12 +73,23 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
         return data.Frames[fid].TMarkTTT_G;
     };
 
+    const addChunkDescription = (chunk) => {
+        const a = config.apparatus[""+appMap[appt]];
+        chunk.appIcon = a.icon;
+    }
+
     const splitResults =  (data, max, sid) => {
         const stage = data?.Stages[sid];
         if (!stage) {
             return [];
         }
-        return splitResultsChunks(data, max, sid, getPerformanceRepresentation, p => getApptRank(p, stage, appt, data), p => getApptScore(p, stage, appt, data));
+        return splitResultsChunks(data, max, sid, 
+            getPerformanceRepresentation, 
+            p => getApptRank(p, stage, appt, data), 
+            p => getApptScore(p, stage, appt, data),
+            () => {},
+            addChunkDescription
+        );
     }
     return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
 }

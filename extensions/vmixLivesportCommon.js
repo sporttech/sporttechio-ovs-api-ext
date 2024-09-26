@@ -84,7 +84,7 @@ function getPerformanceRepresentation(p, M) {
     return M.Athletes[p.Athletes[0]];
 }
 
-function splitResultsChunks(data, max, sid, getRepr = getPerformanceRepresentation, getRank = getPerformanceRank, getScore = getPerformanceScore, ) {
+function splitResultsChunks(data, max, sid, getRepr = getPerformanceRepresentation, getRank = getPerformanceRank, getScore = getPerformanceScore, extendPerormance = () => {}, extendChunk = () => {}) {
 	const performances = [];
 	const event = data.Event;
 	const stage = data.Stages[sid];
@@ -94,11 +94,13 @@ function splitResultsChunks(data, max, sid, getRepr = getPerformanceRepresentati
         const group = data.Groups[gid];
 		for (const pid of group.Performances) {
 			const performance = data.Performances[pid];
-			performances.push({
+            const out = {
 				athlete: getRepr(performance, data), 
 				rank: getRank(performance),
 				score: getScore(performance),
-			});
+			}
+            extendPerormance(out);
+			performances.push(out);
 		}
     }
 	performances.sort((p1, p2) => {
@@ -109,6 +111,7 @@ function splitResultsChunks(data, max, sid, getRepr = getPerformanceRepresentati
 	for (let i = 0; i < performances.length; i += chunkSize) {
 	    const chunk = newResultsChunk(event, competition, stage);
 		chunk.performances = performances.slice(i, i + chunkSize);
+        extendChunk(chunk)
     	chunks.push(chunk);
 	}
     return chunks;
