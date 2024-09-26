@@ -164,6 +164,9 @@ function updateFramesInFocus(updateM) {
     if (Object.keys(updateM["Frames"]).length > 10) {
         // Probably that is initial model load, skipping frames monitoring
         // and filling in buffer with Panel frames
+        if (!("Panels" in updateM)) {
+            return
+        }
         for (const panel of Object.values(updateM["Panels"])) {
             if (!("FrameID" in panel)) {
                 continue;
