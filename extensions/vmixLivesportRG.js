@@ -1,14 +1,16 @@
+import { buildStageAppsDescription } from '../model/RG/stage-apparatus.js';
 import { transformStageList, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
         loadCommonConfig, getPerformanceRepresentation,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
+import { Disciplines } from '../model/RG/stage-apparatus.js';
 
 let M = {};
 
 let OVS = "";
 let config = {
     teams: {},
-    root: "/vmix/bra/ag",
+    root: "/vmix/bra/rg",
     frameState: {},
     apparatus: {}
 };
@@ -131,41 +133,38 @@ function onActiveGroups() {
         const c = M.Competitions[s.CompetitionID];
         const e = M.Event;
         const prevStage = getPrevStage(s,c,M);
+        const apparatuses = buildStageAppsDescription(s, c).all;
         for (const pid of g.Performances) {
             const p = M.Performances[pid];
             const aid = p.Athletes[0];
             const a = M.Athletes[aid];
-            for (const [fidx, fid] of p.Frames.entries()) {
-                if (fidx >= s.PerfomanceFramesLimit) {
-                    break;
-                }
+            for (const [idx, app] of apparatuses.entries()) {
+                const fid = p.Frames[app[0].idx];
+                const appID = app[0].app;
+                const app2ID = c.Discipline === Disciplines.GROUP ? app[1].app : undefined;
                 const f = M.Frames[fid];
-                const aptID = s.FrameTypes[fidx];
                 const athlete = {
                     stageID: s.ID,
-                    app: config.apparatus[aptID].name,
+                    app: config.apparatus[appID].name,
+                    app2: app2ID ? config.apparatus[app2ID].name : undefined,
                     group: s.Groups.indexOf(g.ID) + 1,
-                    routine: "R" + (fidx + 1),
+                    routine: "R" + (idx + 1),
                     state: config.frameState[f.State],
                     name: a.Surname + " " + a.GivenName,
                     repr: bindTeam(a, config),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
                     scoreRoutine: (f.TMarkTTT_G / 1000).toFixed(3),
-                    scoreDifficulty: (f.DMarkT_G / 10).toFixed(1),
+                    scoreDifficulty: (f.DMarkTT_G / 100).toFixed(2),
                     scoreExecution: (f.EMarkTTT_G / 1000).toFixed(3),
-                    scorePenalties: (f.NPenaltyT_G / 10).toFixed(1),
+                    scoreArtistic: (f.AMarkTTT_G / 1000).toFixed(3),
+                    scorePenalties: (f.PenaltyTT_G / 100).toFixed(2),
                     rank: p.Rank_G,
                     eventTitle: e.Title,
                     competitionTitle: c.Title,
                     logo: bindTeamFlag(a, config, OVS),
-                    appIcon: config.apparatus[aptID].icon,
+                    appIcon: config.apparatus[appID].icon,
+                    app2Icon: app2ID ? config.apparatus[app2ID].icon : undefined,
                     scorePrevRoutine: undefined
-                }
-                // Hack for second VAULT2 routine
-                if (fidx > 0 && aptID === 3) {
-                    const prevFrameID = p.Frames[fidx-1];
-                    const prevFrame = M.Frames[prevFrameID];
-                    athlete.scorePrevRoutine = (prevFrame.TMarkTTT_G / 1000).toFixed(3);
                 }
                 // Get qualification results when possible
                 const pp = getSameAthletePerformance(p, prevStage, M);
@@ -192,7 +191,7 @@ function buildApptMap(config) {
 
 export async function register(app, model, addUpdateListner) {
     M = model;
-    [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_AG_FILE", config);
+    [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_RG_FILE", config);
     buildApptMap(config);
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
     app.get(config.root + '/results/:sids/:appt/chunk/:size', (req, res) => {

@@ -1,0 +1,43 @@
+{
+    "root": "/livesport/vmix/rg",
+    "teams": {
+        "ADECO-SP" : { "name": "ADE", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADE.png"},
+		"ADIEE-SC" : { "name": "ADI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADI.png.png"},
+		"AGAJO-SC" : { "name": "AGA", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/AGA.png.png"},
+		"AGITH-SP" : { "name": "AGI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/AGI.png.png"},
+		"CEGIN-PR" : { "name": "CEG", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/CEG.png.png"},
+		"CGEM-PE" : { "name": "CGE", "flag": ""},
+		"CRF-RJ" : { "name": "CRF", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/CRF.png.png"},
+		"ECP-SP" : { "name": "ECP", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ECP.png.png"},
+		"GNU-RS" : { "name": "GNU", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/GNU.png"},
+		"IGAP-PR" : { "name": "IGA", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/IGA.png.png"},
+        "GAP-PR" : {"name": "GAP", "flag": ""},
+		"JURERÊ-SC" : { "name": "JUR", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/JUR.png.png"},
+		"JURERE-SC" : { "name": "JUR", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/JUR.png.png"},
+		"MSGA-GO" : { "name": "MSG", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/MS.png.png"},
+		"MTC-MG" : { "name": "MTC", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/MTC.png.png"},
+		"OSASCO-SP" : { "name": "OSA", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/OSA.png.png"},
+		"SESI-SP" : { "name": "SES", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/SES.png.png"},
+		"SOGIPA-RS" : { "name": "SOG", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/SOG.png.png"}
+	},
+    "frameState": {
+        "0": "NSTART",
+        "1": "PERFORM",
+        "2": "SCORING",
+        "3": "PUBLISHED",
+        "4": "FAILED"
+    },
+    "apparatus": {
+        "0":  { "name": "NOAPP",    "icon": ""},
+        "1":  { "name": "ROPE",    "icon": ""},
+        "2":  { "name": "HOOP",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/ARCO.png"},
+        "3":  { "name": "BALL",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/BOLA.png"},
+        "4":  { "name": "CLUBS",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/MACAS.png"},
+        "5":  { "name": "RIBBON",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/FITA.png"},
+        "6":  { "name": "T1",     "icon": ""},
+        "7":  { "name": "T2",     "icon": ""},
+        "8":  { "name": "T3",     "icon": ""},
+        "9":  { "name": "T4",     "icon": ""},
+        "10":  { "name": "NOUSE",     "icon": ""}
+    }
+}
