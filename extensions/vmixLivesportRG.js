@@ -1,6 +1,6 @@
 import { transformStageList, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
-        loadCommonConfig, getPerformanceRepresentation,
+        loadCommonConfig, getPerformanceRepresentation, getPerformanceRank, getPerformanceScore,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
 import { Disciplines, buildStageAppsDescription, findApparatusFrameIndex } from '../model/RG/stage-apparatus.js';
 
@@ -25,6 +25,9 @@ function proccessStartListChunk(chunk) {
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+    if (chunk.competition.Discipline === Disciplines.GROUP) {
+	    updateFrameData(frameData, "groupName", chunk.performances, ( p ) => { return p.GroupName; } );
+    }
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -39,6 +42,9 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
+    if (chunk.competition.Discipline === Disciplines.GROUP) {
+	    updateFrameData(frameData, "groupName", chunk.performances, ( p ) => { return p.GroupName; } );
+    }
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
     frameData.appIcon = chunk.appIcon || "";
@@ -46,11 +52,35 @@ function proccessResultsChunk(chunk) {
 	return frameData;
 }
 
-function onStartLists(s_sids, chunkSize) {
-    return transformStageList(s_sids, chunkSize, M, splitStartListChunks, proccessStartListChunk)
+const addPerformanceDescription = (out, p, data) => {
+    const g = data.Groups[p.GroupID];
+    const s = data.Stages[g.StageID];
+    const c = data.Competitions[s.CompetitionID];
+    if (c.Discipline === Disciplines.GROUP) {
+        out.GroupName = p.GroupName;
+    }
 }
+function onStartLists(s_sids, chunkSize) {
+    const splitStart = (data, max, sid) => {
+        return splitStartListChunks(data, max, sid, getPerformanceRepresentation, addPerformanceDescription)
+    }
+    return transformStageList(s_sids, chunkSize, M, splitStart, proccessStartListChunk)
+}
+
 function onResultsLists(s_sids, chunkSize) {
-    return transformStageList(s_sids, chunkSize, M, splitResultsChunks, proccessResultsChunk)
+    const splitResults =  (data, max, sid) => {
+        const stage = data?.Stages[sid];
+        if (!stage) {
+            return [];
+        }
+        return splitResultsChunks(data, max, sid, 
+            getPerformanceRepresentation, 
+            getPerformanceRank, 
+            getPerformanceScore,
+            addPerformanceDescription,
+        );
+    }
+    return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk)
 }
 
 function onApptResultsLists(s_sids, chunkSize, appt) {
@@ -87,7 +117,7 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
             getPerformanceRepresentation, 
             p => getApptRank(p, stage, appt, data), 
             p => getApptScore(p, stage, appt, data),
-            () => {},
+            addPerformanceDescription,
             addChunkDescription
         );
     }
@@ -165,6 +195,9 @@ function onActiveGroups() {
                     appIcon: config.apparatus[appID].icon,
                     app2Icon: app2ID ? config.apparatus[app2ID].icon : undefined,
                     scorePrevRoutine: undefined
+                }
+                if (c.Discipline === Disciplines.GROUP) {
+                    athlete.groupName = p.GroupName;
                 }
                 // Get qualification results when possible
                 const pp = getSameAthletePerformance(p, prevStage, M);

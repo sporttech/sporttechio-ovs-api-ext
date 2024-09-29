@@ -33,7 +33,7 @@ function newStartListChunk(event, competition, stage, group, groupIdx, chunk) {
     };
 }
 
-function splitStartListChunks(data, max, sid, getRepr = getPerformanceRepresentation) {
+function splitStartListChunks(data, max, sid, getRepr = getPerformanceRepresentation, extendPerformance = ()=>{}) {
     const chunks = [];
 	const event = data.Event;
     const stage = data.Stages[sid];
@@ -48,11 +48,12 @@ function splitStartListChunks(data, max, sid, getRepr = getPerformanceRepresenta
 		let chunk = newStartListChunk(event, competition, stage, group, idx, chunkCount);
 		for (const [pidx, pid] of group.Performances.entries()) {
 			const performance = data.Performances[pid];
-
-			chunk.performances.push({
+            const out = {
 				athlete: getRepr(performance, data),
 				order: pidx + 1
-			});
+			}
+            extendPerformance(out, performance, data);
+			chunk.performances.push(out);
 			if (chunk.performances.length >= max && max > 0) {
 				chunks.push(chunk);
 				chunkCount++;
@@ -74,10 +75,10 @@ function newResultsChunk(event, competition, stage) {
     };
 }
 
-function getPerformanceRank(p) {
+export function getPerformanceRank(p) {
     return p.Rank_G;
 }
-function getPerformanceScore(p) {
+export function getPerformanceScore(p) {
     return p.MarkTTT_G;
 }
 function getPerformanceRepresentation(p, M) {
@@ -99,7 +100,7 @@ function splitResultsChunks(data, max, sid, getRepr = getPerformanceRepresentati
 				rank: getRank(performance),
 				score: getScore(performance),
 			}
-            extendPerormance(out);
+            extendPerormance(out, performance, data);
 			performances.push(out);
 		}
     }
