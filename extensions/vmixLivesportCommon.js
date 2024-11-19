@@ -85,8 +85,29 @@ function getPerformanceRepresentation(p, M) {
     return M.Athletes[p.Athletes[0]];
 }
 
-function splitResultsChunks(data, max, sid, getRepr = getPerformanceRepresentation, getRank = getPerformanceRank, getScore = getPerformanceScore, extendPerormance = () => {}, extendChunk = () => {}) {
-	const performances = [];
+function setResultsOptionsDefault(options) {
+    if (!options.getRepr) {
+        options.getRepr = getPerformanceRepresentation;
+    }
+    if (!options.getRank) {
+        options.getRank = getPerformanceRank;
+    }
+    if (!options.getScore) {
+        options.getScore = getPerformanceScore;
+    }
+    if (!options.extendPerformance) {
+        options.extendPerformance = () => {};
+    }
+    if (!options.extendChunk) {
+        options.extendChunk = () => {};
+    }
+    if (!options.groupPerformances) {
+        options.groupPerformances = (pfs) => {return pfs}
+    }
+}
+function splitResultsChunks(data, max, sid, options = {}) {
+    setResultsOptionsDefault(options);
+	let performances = [];
 	const event = data.Event;
 	const stage = data.Stages[sid];
 	const competition = data.Competitions[stage.CompetitionID];
@@ -96,14 +117,15 @@ function splitResultsChunks(data, max, sid, getRepr = getPerformanceRepresentati
 		for (const pid of group.Performances) {
 			const performance = data.Performances[pid];
             const out = {
-				athlete: getRepr(performance, data), 
-				rank: getRank(performance),
-				score: getScore(performance),
+				athlete: options.getRepr(performance, data), 
+				rank: options.getRank(performance),
+				score: options.getScore(performance),
 			}
-            extendPerormance(out, performance, data);
+            options.extendPerformance(out, performance, data);
 			performances.push(out);
 		}
     }
+    performances = options.groupPerformances(performances);
 	performances.sort((p1, p2) => {
 		return p1.rank - p2.rank;
 	});
@@ -112,7 +134,7 @@ function splitResultsChunks(data, max, sid, getRepr = getPerformanceRepresentati
 	for (let i = 0; i < performances.length; i += chunkSize) {
 	    const chunk = newResultsChunk(event, competition, stage);
 		chunk.performances = performances.slice(i, i + chunkSize);
-        extendChunk(chunk)
+        options.extendChunk(chunk)
     	chunks.push(chunk);
 	}
     return chunks;
@@ -143,9 +165,10 @@ function bindTeamFlag(a, config, OVS) {
 }
 
 const recentFramesInFoucs = new buffer(10);
-export const F_STARTED = 1;
-export const F_PUBLISHED = 3;
-export const F_STATES = {};
+const F_STARTED = 1;
+const F_PUBLISHED = 3;
+const F_STATES = {};
+
 F_STATES[F_STARTED] = "started";
 F_STATES[F_PUBLISHED] = "published";
 function processFrameUodate(frame) {

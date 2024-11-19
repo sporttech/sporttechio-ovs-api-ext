@@ -68,7 +68,9 @@ function onStartLists(s_sids, chunkSize) {
 }
 function onResultsLists(s_sids, chunkSize) {
     const splitChunks = (data, max, sid) => {
-        return splitResultsChunks(data, max, sid, performancePresent);
+        return splitResultsChunks(data, max, sid, {
+            getRepr: performancePresent
+        });
     }
     return transformStageList(s_sids, chunkSize, M, splitChunks, proccessResultsChunk);
 }

@@ -73,12 +73,12 @@ function onResultsLists(s_sids, chunkSize) {
         if (!stage) {
             return [];
         }
-        return splitResultsChunks(data, max, sid, 
-            getPerformanceRepresentation, 
-            getPerformanceRank, 
-            getPerformanceScore,
-            addPerformanceDescription,
-        );
+        return splitResultsChunks(data, max, sid, {
+            getRepr: getPerformanceRepresentation, 
+            getRank: getPerformanceRank, 
+            getScore: getPerformanceScore,
+            extendPerformance: addPerformanceDescription,
+        });
     }
     return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk)
 }

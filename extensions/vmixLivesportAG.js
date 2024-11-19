@@ -59,6 +59,19 @@ function proccessResultsChunk(chunk) {
 
 	return frameData;
 }
+function proccessTeamResultsChunk(chunk) {
+	const frameData = {
+		competition: chunk.competition.Title,
+	};
+	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
+	frameData.event = chunk.event.Title;
+	frameData.eventSubtitle = chunk.event.Subtitle;
+
+	return frameData;
+}
 
 
 function newSessionChunk(event, session, competition, pack, app, rotation, chunk) {
@@ -173,9 +186,63 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
         if (!stage) {
             return [];
         }
-        return splitResultsChunks(data, max, sid, getPerformanceRepresentation, p => getApptRank(p, stage, appt), p => getApptScore(p, stage, appt, data));
+        return splitResultsChunks(data, max, sid, {
+            getRepr: getPerformanceRepresentation,
+            getRank: p => getApptRank(p, stage, appt),
+            getScore: p => getApptScore(p, stage, appt, data),
+        });
     }
     return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
+}
+
+function mergeTeams(plist) {
+    const filtered = plist.filter( p => p.teamID >= 0)
+    const grouped = filtered.reduce((acc, obj) => {
+        const key = obj.teamID;
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+    }, {});
+    const mapped = Object.entries(grouped).map(([, group]) => {
+        const ref = {
+        ...group[0]
+        }
+        return ref;
+    });
+    return mapped;
+}
+
+function addTeam(pout, p, data) {
+    if (p.Team >= 0) {
+        pout.teamID = p.Team
+    }
+}
+
+function onTeamResultsLists(s_sids, chunkSize) {
+    const getTeamRank = (p) => {
+        return p.TeamRank_G
+    };
+
+    const getTeamScore = (p) => {
+        return p.TeamMarkTTT_G;
+    };
+
+    const splitResults =  (data, max, sid) => {
+        const stage = data?.Stages[sid];
+        if (!stage) {
+            return [];
+        }
+        return splitResultsChunks(data, max, sid, {
+            getRepr: getPerformanceRepresentation,
+            getRank: p => getTeamRank(p),
+            getScore: p => getTeamScore(p),
+            extendPerformance: addTeam,
+            groupPerformances: (plist => mergeTeams(plist))
+        });
+    }
+    return transformStageList(s_sids, chunkSize, M, splitResults, proccessTeamResultsChunk);
 }
 
 const equals = (a, b) =>
@@ -283,6 +350,10 @@ export async function register(app, model, addUpdateListner) {
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
     app.get(config.root + '/results/:sids/:appt/chunk/:size', (req, res) => {
         const data = onApptResultsLists(req.params.sids, req.params.size, req.params.appt);
+        res.json(data);
+    });
+    app.get(config.root + '/teamresults/:sids/chunk/:size', (req, res) => {
+        const data = onTeamResultsLists(req.params.sids, req.params.size, req.params.appt);
         res.json(data);
     });
     app.get(config.root + '/sessions/:sids/chunk/:size', (req, res) => {
