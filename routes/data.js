@@ -1,3 +1,4 @@
+import { routes } from "../logRoutes.js";
 import { listTeams } from "../model/query.js";
 let model = {};
 
@@ -18,6 +19,12 @@ function listTeamsWrap(req, res) {
         'teams':listTeams(model)
     });
 }
+function listRoutes(req, res) {
+    res.json({
+        list: routes.map(r => r.path),
+        routes: routes,
+    });
+}
 
 
 export function extend(app, m) {
@@ -25,4 +32,5 @@ export function extend(app, m) {
     app.get('/data', getData);
     app.get('/data/lastUpdate', lastUpdate);
     app.get('/data/listTeams', listTeamsWrap);
+    app.get('/endpoints', listRoutes);
 };
