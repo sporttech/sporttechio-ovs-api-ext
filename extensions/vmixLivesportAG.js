@@ -29,6 +29,22 @@ function proccessStartListChunk(chunk) {
 
 	return frameData;
 }
+function proccessSessionChunk(chunk) {
+	const frameData = {
+		chunk: chunk.chunk,
+        competition: chunk.competition.Title,
+        rotation: chunk.rotation,
+        appIcon: chunk.app.icon
+	};
+	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+	frameData.event = chunk.event.Title;
+	frameData.eventSubtitle = chunk.event.Subtitle;
+
+	return frameData;
+}
 function proccessResultsChunk(chunk) {
 	const frameData = {
 		competition: chunk.competition.Title,
@@ -44,8 +60,78 @@ function proccessResultsChunk(chunk) {
 	return frameData;
 }
 
+
+function newSessionChunk(event, session, competition, pack, app, rotation, chunk) {
+    return {
+		event: event,
+		session: session,
+        competition: competition,
+        pack: pack,
+        app: app,
+        rotation: 'R'+rotation,
+		chunk: chunk,
+        performances: []
+    };
+}
+
+function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentation, extendPerformance = ()=>{}) {
+    const chunks = [];
+	const event = data.Event;
+    const session = data.Sessions[sid];
+    if (session === undefined) {
+        return [];
+    }
+    const stage = data.Stages[session.LongestStage_G];
+    const competition = data.Competitions[stage.CompetitionID];
+
+    let rotationFound = true;
+    let rotationNumber = -1;
+
+    while (rotationFound) {
+        rotationNumber++;
+        rotationFound = false;
+        for (const pkid of session.Packs) {
+            const pack = data.Packs[pkid];
+            let appID = -1;
+            let app = "";
+            for (const [appIdx, rotation] of Object.entries(pack.Rotations)) {
+                if (rotation === rotationNumber) {
+                    appID = stage.FrameTypes[appIdx];
+                    app = config.apparatus[appID];
+                    rotationFound = true;
+                }
+            }
+            if (appID === -1) {
+                continue;
+            }
+            let chunkCount = 1;
+            let chunk = newSessionChunk(event, session, competition, pack, app, rotationNumber + 1, chunkCount);
+            for (const [pidx, pid] of pack.Performances.entries()) {
+                const performance = data.Performances[pid];
+                const out = {
+                    athlete: getRepr(performance, data),
+                    order: pidx + 1
+                }
+                extendPerformance(out, performance, data);
+                chunk.performances.push(out);
+                if (chunk.performances.length >= max && max > 0) {
+                    chunks.push(chunk);
+                    chunkCount++;
+                    chunk = newSessionChunk(event, session, competition,  pack, app, rotationNumber + 1, chunkCount);
+                }
+            }
+            chunks.push(chunk);
+        }
+    }
+
+    return chunks;
+}
+
 function onStartLists(s_sids, chunkSize) {
     return transformStageList(s_sids, chunkSize, M, splitStartListChunks, proccessStartListChunk)
+}
+function onSession(s_sids, chunkSize) {
+    return transformStageList(s_sids, chunkSize, M, splitSessionChunks, proccessSessionChunk)
 }
 function onResultsLists(s_sids, chunkSize) {
     return transformStageList(s_sids, chunkSize, M, splitResultsChunks, proccessResultsChunk)
@@ -197,6 +283,10 @@ export async function register(app, model, addUpdateListner) {
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
     app.get(config.root + '/results/:sids/:appt/chunk/:size', (req, res) => {
         const data = onApptResultsLists(req.params.sids, req.params.size, req.params.appt);
+        res.json(data);
+    });
+    app.get(config.root + '/sessions/:sids/chunk/:size', (req, res) => {
+        const data = onSession(req.params.sids, req.params.size) 
         res.json(data);
     });
 };
