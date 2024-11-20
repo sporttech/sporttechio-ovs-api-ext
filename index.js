@@ -4,7 +4,7 @@ import clc from "cli-color";
 import express from 'express';
 import { internalIpV4Sync } from 'internal-ip';
 import { applyUpdate, isEmptyUpdate } from './model/update.js';
-import { logRoutes } from './logRoutes.js';
+import { routes, logRoutes } from './logRoutes.js';
 import { extend as extendDataRoute } from './routes/data.js';
 
 dotenv.config();
@@ -85,6 +85,8 @@ app.use((req, res, next) => {
 });
 
 extendDataRoute(app, model);
+
+
 async function loadExtensions() {
     const extensions = process.env.EXTENSIONS ? process.env.EXTENSIONS.split(',') : [];
     console.log(`sporttech.io API Adapter loading extensions: ${extensions}`);
@@ -105,6 +107,14 @@ async function loadExtensions() {
 }
 
 await loadExtensions();
+
+app.use((req, res) => {
+    res.json({
+        ovs_url: process.env.OVS_URL + '/',
+        last_update: model.lastUpdate,
+        endpoints_list: routes.map(r => r.path),
+    })
+})
 
 app.listen(port, () => {
     console.log(clc.bgGreen(`=== sporttech.io API Adapter listening at`), clc.bgCyan(`http://${ip}:${port}`));
