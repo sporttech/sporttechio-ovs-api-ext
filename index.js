@@ -136,6 +136,7 @@ app.use((req, res) => {
     `);
 })
 
+
 app.listen(port, () => {
     console.log(clc.bgGreen(`=== sporttech.io API Adapter listening at`), clc.bgCyan(`http://${ip}:${port}`));
     console.log(clc.green(`OVS url:`), clc.bgCyan(`${ovsUrl}/`));

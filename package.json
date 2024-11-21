@@ -6,7 +6,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "dev": "nodemon --exec 'npm run lint && node' index.js"
+    "dev": "nodemon --exec 'npm run lint && node' index.js",
+    "docker:build": "docker build --platform linux/amd64 -t sporttech.io/api-ext .",
+    "docker:tag": "docker tag sporttech.io/api-ext psholukha/sporttech.io-api-ext",
+    "docker:push": "docker push psholukha/sporttech.io-api-ext",
+    "docker:deploy": "npm run docker:build && npm run docker:tag && npm run docker:push"
   },
   "keywords": [],
   "author": "",

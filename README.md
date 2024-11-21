@@ -75,14 +75,13 @@ docker push psholukha/sporttech.io-api-ext
 
 ## Docker on server notes
 * Config files are stored in `/sporttech.io/api-ext`, use vi/nano to edit files
+* Build and deploy docker image using npm scripts:
+  * `npm run docker:build` - Build docker image for linux/amd64 platform
+  * `npm run docker:tag` - Tag image for dockerhub
+  * `npm run docker:push` - Push image to dockerhub
+  * `npm run docker:deploy` - Run all above commands in sequence
 * Download docker image: `docker pull psholukha/sporttech.io-api-ext`
 * Stop running container: `docker stop CONTRAINER_ID`
 * List all containers, including stopped: `docker ps -a`
 * Rename container: `docker rename CONTAINER_ID NEW_NAME`
 * Run image: 
-```
- docker run --name "sporttech-api-ext" -p 3300:3000 -v /sporttech.io/api-ext/env:/home/node/sporttech.io/api-ext/.env -v /sporttech.io/api-ext/config.json:/home/node/sporttech.io/api-ext/extensions/config.json --log-driver json-file --log-opt max-size=1024k --log-opt max-file=4  -d psholukha/sporttech.io-api-ext
-```
-* Check running container ID: `docker ps`
-* Restart running container, to update env or config: `docker restart CONTAINER_ID`
-* View last 200 log records and follow: `docker logs -f --tail 200 CONTAINER_ID`
