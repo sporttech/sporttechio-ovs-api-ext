@@ -214,7 +214,7 @@ function mergeTeams(plist) {
     return mapped;
 }
 
-function addTeam(pout, p, data) {
+function addTeam(pout, p) {
     if (p.Team >= 0) {
         pout.teamID = p.Team
     }
