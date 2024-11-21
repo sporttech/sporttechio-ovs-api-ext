@@ -109,11 +109,31 @@ async function loadExtensions() {
 await loadExtensions();
 
 app.use((req, res) => {
-    res.json({
-        ovs_url: process.env.OVS_URL + '/',
-        last_update: model.lastUpdate,
-        endpoints_list: routes.map(r => r.path),
-    })
+    const endpoints = routes.map(r => {
+        // Replace chunk/:size with chunk/8 and :sids with 0
+        let path = r.path;
+        path = path.replace(/chunk\/:size/g, 'chunk/8')
+                  .replace(/:sids/g, '0')
+                  .replace(/:[^/]+/g, '0');
+        return `<li><a href="${path}">${path}</a></li>`;
+    }).join('\n');
+
+    res.send(`
+        <html>
+            <body>
+                <h3>OVS URL:</h3>
+                <p><a href="${process.env.OVS_URL}/">${process.env.OVS_URL}/</a></p>
+                
+                <h3>Last Update:</h3>
+                <p>${model.lastUpdate}</p>
+                
+                <h3>Available Endpoints:</h3>
+                <ul>
+                    ${endpoints}
+                </ul>
+            </body>
+        </html>
+    `);
 })
 
 app.listen(port, () => {
