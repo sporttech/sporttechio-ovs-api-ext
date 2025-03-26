@@ -1,5 +1,5 @@
 {
-    "root": "/livesport/vmix/ag",
+    "root": "/vmix/ag",
     "teams": {
         "ADECO-SP" : { "name": "ADE", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADE.png"},
                 "ADIEE-SC" : { "name": "ADI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADI.png.png"},

@@ -9,7 +9,7 @@ let M = {};
 let OVS = "";
 let config = {
     teams: {},
-    root: "/vmix/bra/ag",
+    root: "/vmix/ag",
     frameState: {},
     apparatus: {}
 };
