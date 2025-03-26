@@ -22,7 +22,7 @@ function proccessStartListChunk(chunk) {
 		chunk: chunk.chunk
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname.toUpperCase() + " " + p.athlete.GivenName });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
 	frameData.event = chunk.event.Title;
@@ -38,7 +38,7 @@ function proccessSessionChunk(chunk) {
         appIcon: chunk?.apparatus?.icon
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname.toUpperCase() + " " + p.athlete.GivenName });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
     frameData.competition = chunk?.competition?.Title,
@@ -52,7 +52,7 @@ function proccessResultsChunk(chunk) {
 		competition: chunk.competition.Title,
 	};
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname.toUpperCase() + " " + p.athlete.GivenName });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
@@ -268,7 +268,7 @@ function onActiveGroups() {
                     routine: "R" + (fidx + 1),
                     state: config.frameState[f.State],
                     bib: a.ExternalID,
-                    name: a.Surname + " " + a.GivenName,
+                    name: a.Surname.toUpperCase() + " " + a.GivenName,
                     repr: bindTeam(a, config),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
                     scoreRoutine: (f.TMarkTTT_G / 1000).toFixed(3),
