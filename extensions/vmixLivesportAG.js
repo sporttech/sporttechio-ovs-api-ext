@@ -3,7 +3,7 @@ import { transformIds, splitStartListChunks, splitResultsChunks,
         loadCommonConfig, getPerformanceRepresentation,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
 import { splitSessionPerformancesByRotationAndAppt } from '../model/AG/session.transform.js';
-
+import { getTeamRank, getTeamScore } from '../model/AG/performance.utils.js';
 let M = {};
 
 let OVS = "";
@@ -37,9 +37,6 @@ function proccessSessionChunk(chunk) {
         appName: chunk?.apparatus?.name,
         appIcon: chunk?.apparatus?.icon
 	};
-    if (chunk.chunkIdx === undefined) {
-        console.log(chunk);
-    }
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
@@ -56,19 +53,6 @@ function proccessResultsChunk(chunk) {
 	};
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
-	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
-	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
-	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
-	frameData.event = chunk.event.Title;
-	frameData.eventSubtitle = chunk.event.Subtitle;
-
-	return frameData;
-}
-function proccessTeamResultsChunk(chunk) {
-	const frameData = {
-		competition: chunk.competition.Title,
-	};
-	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
@@ -184,21 +168,34 @@ function mergeTeams(plist) {
     return mapped;
 }
 
-function addTeam(pout, p) {
+function addTeam(pout, p, data) {
     if (p.Team >= 0) {
-        pout.teamID = p.Team
+        pout.teamID = p.Team;
+        pout.ARScore = p.MarkAllRoundTeamSummaryTTT_G;
+        if (p.PrevPerformanceID_G && p.PrevPerformanceID_G !== -1) {
+            const prev = data.Performances[p.PrevPerformanceID_G];
+            pout.prevScore = getTeamScore(prev);
+        }
     }
 }
 
+function proccessTeamResultsChunk(chunk) {
+	const frameData = {
+		competition: chunk.competition.Title,
+	};
+	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
+	updateFrameData(frameData, "pscore", chunk.performances, ( p ) => { return (p.prevScore / 1000).toFixed(3) });
+	updateFrameData(frameData, "arscore", chunk.performances, ( p ) => { return (p.ARScore / 1000).toFixed(3) });
+	frameData.event = chunk.event.Title;
+	frameData.eventSubtitle = chunk.event.Subtitle;
+
+	return frameData;
+}
+
 function onTeamResultsLists(s_sids, chunkSize) {
-    const getTeamRank = (p) => {
-        return p.TeamRank_G
-    };
-
-    const getTeamScore = (p) => {
-        return p.TeamMarkTTT_G;
-    };
-
     const splitResults =  (data, max, sid) => {
         const stage = data?.Stages[sid];
         if (!stage) {
@@ -270,6 +267,7 @@ function onActiveGroups() {
                     group: s.Groups.indexOf(g.ID) + 1,
                     routine: "R" + (fidx + 1),
                     state: config.frameState[f.State],
+                    bib: a.ExternalID,
                     name: a.Surname + " " + a.GivenName,
                     repr: bindTeam(a, config),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
