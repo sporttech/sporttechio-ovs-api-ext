@@ -1,3 +1,5 @@
+import { chunk } from '../../utils/array.js';
+
 export const Apparatus = {
     NoApparatus: 0,
     Rope: 1,
@@ -20,19 +22,11 @@ export const Disciplines = {
     DISCIPLINE__MAX: 3,
 };
 
-function chunk(a, chunkSize) {
-    const res = [];
-    for (let i = 0; i < a.length; i += chunkSize) {
-        const chunk = a.slice(i, i + chunkSize);
-        res.push(chunk);
-    }
-    return res;
-}
-
 function buildIndAppts(apps) {
     const filtered = apps.filter( a => a.app != Apparatus.NotInUse);
     return filtered.map( a => [a]);
 }
+
 function buildGroupAppts(apps) {
     const pairs = chunk(apps,2);
     return pairs.filter( p => {
