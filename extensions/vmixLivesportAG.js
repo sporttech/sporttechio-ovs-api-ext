@@ -276,6 +276,7 @@ function onActiveGroups() {
                     scoreExecution: (f.EMarkTTT_G / 1000).toFixed(3),
                     scorePenalties: (f.NPenaltyT_G / 10).toFixed(1),
                     rank: p.Rank_G,
+                    rankApt: p.FrameRanks_G[fidx],
                     eventTitle: e.Title,
                     competitionTitle: c.Title,
                     logo: bindTeamFlag(a, config, OVS),
