@@ -1,4 +1,4 @@
-import { transformStageList, splitStartListChunks, splitResultsChunks, 
+import { transformIds, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag,
         recentGroups, loadCommonConfig, registerCommonEndpoints,
         recentFrames, F_STATES, F_PUBLISHED} from './vmixLivesportCommon.js';
@@ -64,15 +64,16 @@ function onStartLists(s_sids, chunkSize) {
     const splitChunks = (data, max, sid) => {
         return splitStartListChunks(data, max, sid, performancePresent);
     }
-    return transformStageList(s_sids, chunkSize, M, splitChunks, proccessStartListChunk);
+    return transformIds(s_sids, chunkSize, M, splitChunks, proccessStartListChunk);
 }
+
 function onResultsLists(s_sids, chunkSize) {
     const splitChunks = (data, max, sid) => {
         return splitResultsChunks(data, max, sid, {
             getRepr: performancePresent
         });
     }
-    return transformStageList(s_sids, chunkSize, M, splitChunks, proccessResultsChunk);
+    return transformIds(s_sids, chunkSize, M, splitChunks, proccessResultsChunk);
 }
 
 const equals = (a, b) =>

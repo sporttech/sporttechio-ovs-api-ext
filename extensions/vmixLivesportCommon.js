@@ -156,9 +156,9 @@ function bindTeamFlag(a, config, OVS) {
 }
 
 const recentFramesInFoucs = new buffer(10);
-const F_STARTED = 1;
-const F_PUBLISHED = 3;
-const F_STATES = {};
+export const F_STARTED = 1;
+export const F_PUBLISHED = 3;
+export const F_STATES = {};
 
 F_STATES[F_STARTED] = "started";
 F_STATES[F_PUBLISHED] = "published";
