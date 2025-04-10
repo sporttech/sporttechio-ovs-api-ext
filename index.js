@@ -87,6 +87,7 @@ app.use((req, res, next) => {
 extendDataRoute(app, model);
 
 
+
 async function loadExtensions() {
     const extensions = process.env.EXTENSIONS ? process.env.EXTENSIONS.split(',') : [];
     console.log(`sporttech.io API Adapter loading extensions: ${extensions}`);
@@ -108,6 +109,7 @@ async function loadExtensions() {
 
 await loadExtensions();
 
+app.use(express.static('static'));
 app.use((req, res) => {
     const endpoints = routes.map(r => {
         // Replace chunk/:size with chunk/8 and :sids with 0

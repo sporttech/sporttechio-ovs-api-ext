@@ -1,5 +1,5 @@
 {
-    "root": "/livesport/vmix/ag",
+    "root": "/vmix/ag",
     "teams": {
         "ADECO-SP" : { "name": "ADE", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADE.png"},
                 "ADIEE-SC" : { "name": "ADI", "flag": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/LOGOS/ADI.png.png"},
@@ -54,15 +54,15 @@
         "4": "FAILED"
     },
     "apparatus": {
-        "1":  { "name": "FLOOR",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/SOLO.png"},
-        "2":  { "name": "VAULT",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/MESA.png"},
-        "3":  { "name": "VAULT2",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/MESA.png"},
-        "4":  { "name": "POMMEL",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/CAVALO_ALCAS.png"},
-        "5":  { "name": "RINGS",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/ARGOLA.png"},
-        "6":  { "name": "PBARS",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/PARALELAS.png"},
-        "7":  { "name": "HBAR",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/FIXA.png"},
-        "8":  { "name": "UBAR",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/ASSIMETRICAS.png"},
-        "9":  { "name": "BEAM",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2024-AG-BRA-Livesports/APPARATUSES/TRAVE.png"},
-        "10": { "name": "REST",     "icon": ""}
+        "1":  { "name": "FLOOR",    "icon": "http://localhost:3000/appts/floor.png"},
+        "2":  { "name": "VAULT",    "icon": "http://localhost:3000/appts/vault.png"},
+        "3":  { "name": "VAULT2",   "icon": "http://localhost:3000/appts/vault.png"},
+        "4":  { "name": "POMMEL",   "icon": "http://localhost:3000/appts/pommel.png"},
+        "5":  { "name": "RINGS",    "icon": "http://localhost:3000/appts/rings.png"},
+        "6":  { "name": "PBARS",    "icon": "http://localhost:3000/appts/pbars.png"},
+        "7":  { "name": "HBAR",     "icon": "http://localhost:3000/appts/hbar.png"},
+        "8":  { "name": "UBAR",     "icon": "http://localhost:3000/appts/ubar.png"},
+        "9":  { "name": "BEAM",     "icon": "http://localhost:3000/appts/beam.png"},
+        "10": { "name": "REST",     "icon": "http://localhost:3000/appts/rest.png"}
     }
 }

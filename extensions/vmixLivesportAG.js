@@ -1,14 +1,15 @@
-import { transformStageList, splitStartListChunks, splitResultsChunks, 
+import { transformIds, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
         loadCommonConfig, getPerformanceRepresentation,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
-
+import { splitSessionPerformancesByRotationAndAppt } from '../model/AG/session.transform.js';
+import { getTeamRank, getTeamScore } from '../model/AG/performance.utils.js';
 let M = {};
 
 let OVS = "";
 let config = {
     teams: {},
-    root: "/vmix/bra/ag",
+    root: "/vmix/ag",
     frameState: {},
     apparatus: {}
 };
@@ -21,7 +22,7 @@ function proccessStartListChunk(chunk) {
 		chunk: chunk.chunk
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname.toUpperCase() + " " + p.athlete.GivenName });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
 	frameData.event = chunk.event.Title;
@@ -31,15 +32,16 @@ function proccessStartListChunk(chunk) {
 }
 function proccessSessionChunk(chunk) {
 	const frameData = {
-		chunk: chunk.chunk,
-        competition: chunk.competition.Title,
+		chunk: chunk.chunkIdx,
         rotation: chunk.rotation,
-        appIcon: chunk.app.icon
+        appName: chunk?.apparatus?.name,
+        appIcon: chunk?.apparatus?.icon
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname.toUpperCase() + " " + p.athlete.GivenName });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+    frameData.competition = chunk?.competition?.Title,
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -50,7 +52,7 @@ function proccessResultsChunk(chunk) {
 		competition: chunk.competition.Title,
 	};
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname + " " + p.athlete.GivenName });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.Surname.toUpperCase() + " " + p.athlete.GivenName });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
@@ -58,37 +60,9 @@ function proccessResultsChunk(chunk) {
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
 	return frameData;
-}
-function proccessTeamResultsChunk(chunk) {
-	const frameData = {
-		competition: chunk.competition.Title,
-	};
-	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
-	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
-	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
-	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
-	frameData.event = chunk.event.Title;
-	frameData.eventSubtitle = chunk.event.Subtitle;
-
-	return frameData;
-}
-
-
-function newSessionChunk(event, session, competition, pack, app, rotation, chunk) {
-    return {
-		event: event,
-		session: session,
-        competition: competition,
-        pack: pack,
-        app: app,
-        rotation: 'R'+rotation,
-		chunk: chunk,
-        performances: []
-    };
 }
 
 function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentation, extendPerformance = ()=>{}) {
-    const chunks = [];
 	const event = data.Event;
     const session = data.Sessions[sid];
     if (session === undefined) {
@@ -96,58 +70,38 @@ function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentati
     }
     const stage = data.Stages[session.LongestStage_G];
     const competition = data.Competitions[stage.CompetitionID];
-
-    let rotationFound = true;
-    let rotationNumber = -1;
-
-    while (rotationFound) {
-        rotationNumber++;
-        rotationFound = false;
-        for (const pkid of session.Packs) {
-            const pack = data.Packs[pkid];
-            let appID = -1;
-            let app = "";
-            for (const [appIdx, rotation] of Object.entries(pack.Rotations)) {
-                if (rotation === rotationNumber) {
-                    appID = stage.FrameTypes[appIdx];
-                    app = config.apparatus[appID];
-                    rotationFound = true;
-                }
-            }
-            if (appID === -1) {
-                continue;
-            }
-            let chunkCount = 1;
-            let chunk = newSessionChunk(event, session, competition, pack, app, rotationNumber + 1, chunkCount);
-            for (const [pidx, pid] of pack.Performances.entries()) {
-                const performance = data.Performances[pid];
-                const out = {
-                    athlete: getRepr(performance, data),
-                    order: pidx + 1
-                }
-                extendPerformance(out, performance, data);
-                chunk.performances.push(out);
-                if (chunk.performances.length >= max && max > 0) {
-                    chunks.push(chunk);
-                    chunkCount++;
-                    chunk = newSessionChunk(event, session, competition,  pack, app, rotationNumber + 1, chunkCount);
-                }
-            }
-            chunks.push(chunk);
-        }
+    const chunks = splitSessionPerformancesByRotationAndAppt(data, sid, max);
+    const extendChunkData = (chunk, chunkIdx) => {
+        const out = {
+            chunkIdx: chunkIdx,
+	        event: event,
+	        session: session,
+            competition: competition,
+            apparatus: config.apparatus[chunk.frameType],
+            rotation: 'R'+(chunk.rotation+1),
+            performances: chunk.performances.map((p, idx) => {
+                const out = { ...p };
+                out.order = 1+idx + (chunk.chunkIdx === 0 ? 0 : (chunk.chunkIdx-1) * max);
+                out.athlete = getRepr(p, data);
+                extendPerformance(out, p, data);
+                return out;
+            }),
+            sourceChunk: chunk
+        };
+        return out;
     }
 
-    return chunks;
+    return chunks.map(extendChunkData);
 }
 
 function onStartLists(s_sids, chunkSize) {
-    return transformStageList(s_sids, chunkSize, M, splitStartListChunks, proccessStartListChunk)
+    return transformIds(s_sids, chunkSize, M, splitStartListChunks, proccessStartListChunk)
 }
 function onSession(s_sids, chunkSize) {
-    return transformStageList(s_sids, chunkSize, M, splitSessionChunks, proccessSessionChunk)
+    return transformIds(s_sids, chunkSize, M, splitSessionChunks, proccessSessionChunk)
 }
 function onResultsLists(s_sids, chunkSize) {
-    return transformStageList(s_sids, chunkSize, M, splitResultsChunks, proccessResultsChunk)
+    return transformIds(s_sids, chunkSize, M, splitResultsChunks, proccessResultsChunk)
 }
 
 function findApptFrameIdx(s, appt) {
@@ -192,7 +146,7 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
             getScore: p => getApptScore(p, stage, appt, data),
         });
     }
-    return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
+    return transformIds(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
 }
 
 function mergeTeams(plist) {
@@ -214,21 +168,34 @@ function mergeTeams(plist) {
     return mapped;
 }
 
-function addTeam(pout, p) {
+function addTeam(pout, p, data) {
     if (p.Team >= 0) {
-        pout.teamID = p.Team
+        pout.teamID = p.Team;
+        pout.ARScore = p.MarkAllRoundTeamSummaryTTT_G;
+        if (p.PrevPerformanceID_G && p.PrevPerformanceID_G !== -1) {
+            const prev = data.Performances[p.PrevPerformanceID_G];
+            pout.prevScore = getTeamScore(prev);
+        }
     }
 }
 
+function proccessTeamResultsChunk(chunk) {
+	const frameData = {
+		competition: chunk.competition.Title,
+	};
+	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
+	updateFrameData(frameData, "pscore", chunk.performances, ( p ) => { return (p.prevScore / 1000).toFixed(3) });
+	updateFrameData(frameData, "arscore", chunk.performances, ( p ) => { return (p.ARScore / 1000).toFixed(3) });
+	frameData.event = chunk.event.Title;
+	frameData.eventSubtitle = chunk.event.Subtitle;
+
+	return frameData;
+}
+
 function onTeamResultsLists(s_sids, chunkSize) {
-    const getTeamRank = (p) => {
-        return p.TeamRank_G
-    };
-
-    const getTeamScore = (p) => {
-        return p.TeamMarkTTT_G;
-    };
-
     const splitResults =  (data, max, sid) => {
         const stage = data?.Stages[sid];
         if (!stage) {
@@ -242,7 +209,7 @@ function onTeamResultsLists(s_sids, chunkSize) {
             groupPerformances: (plist => mergeTeams(plist))
         });
     }
-    return transformStageList(s_sids, chunkSize, M, splitResults, proccessTeamResultsChunk);
+    return transformIds(s_sids, chunkSize, M, splitResults, proccessTeamResultsChunk);
 }
 
 const equals = (a, b) =>
@@ -300,7 +267,8 @@ function onActiveGroups() {
                     group: s.Groups.indexOf(g.ID) + 1,
                     routine: "R" + (fidx + 1),
                     state: config.frameState[f.State],
-                    name: a.Surname + " " + a.GivenName,
+                    bib: a.ExternalID,
+                    name: a.Surname.toUpperCase() + " " + a.GivenName,
                     repr: bindTeam(a, config),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
                     scoreRoutine: (f.TMarkTTT_G / 1000).toFixed(3),
@@ -308,6 +276,7 @@ function onActiveGroups() {
                     scoreExecution: (f.EMarkTTT_G / 1000).toFixed(3),
                     scorePenalties: (f.NPenaltyT_G / 10).toFixed(1),
                     rank: p.Rank_G,
+                    rankApt: p.FrameRanks_G[fidx],
                     eventTitle: e.Title,
                     competitionTitle: c.Title,
                     logo: bindTeamFlag(a, config, OVS),
