@@ -115,7 +115,8 @@ function describeFrame(fid, M) {
         const s = M.Stages[g.StageID];
         const c = M.Competitions[s.CompetitionID];
         const prevStage = getPrevStage(s,c,M);
-        const aptID = c.Discipline;
+        // Team All-Around has a different discipline ID
+        const aptID = c.Discipline === 4 ? p.Discipline : c.Discipline;
         const e = M.Event;
 
         const description = {

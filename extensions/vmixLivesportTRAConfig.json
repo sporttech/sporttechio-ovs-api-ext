@@ -31,9 +31,9 @@
         "4": "FAILED"
     },
     "apparatus": {
-        "0":  { "name": "TIND",    "icon": ""},
-        "1":  { "name": "TSYN",    "icon": ""},
-        "2":  { "name": "DMT",    "icon": ""},
-        "3":  { "name": "TUM",    "icon": ""}
+        "0":  { "name": "TIND",    "icon": "https://eu-central-1.linodeobjects.com/sporttech-io-s3/2025-TRA-RU-assets/broadcast/appIcons/white/TRI.png"},
+        "1":  { "name": "TSYN",    "icon": "https://eu-central-1.linodeobjects.com/sporttech-io-s3/2025-TRA-RU-assets/broadcast/appIcons/white/TRS.png"},
+        "2":  { "name": "DMT",    "icon": "https://eu-central-1.linodeobjects.com/sporttech-io-s3/2025-TRA-RU-assets/broadcast/appIcons/white/DMT.png"},
+        "3":  { "name": "TUM",    "icon": "https://eu-central-1.linodeobjects.com/sporttech-io-s3/2025-TRA-RU-assets/broadcast/appIcons/white/TUM.png"}
     }
 }
