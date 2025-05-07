@@ -268,7 +268,7 @@ function onActiveGroups() {
                     routine: "R" + (fidx + 1),
                     state: config.frameState[f.State],
                     bib: a.ExternalID,
-                    name: a.Surname.toUpperCase() + " " + a.GivenName,
+                    name: a.GivenName + " " + a.Surname.toUpperCase(),
                     repr: bindTeam(a, config),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
                     scoreRoutine: (f.TMarkTTT_G / 1000).toFixed(3),
