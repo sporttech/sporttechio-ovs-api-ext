@@ -1,4 +1,4 @@
-import { transformIds, splitStartListChunks, splitResultsChunks, 
+import { transformIds, splitStartListChunks, splitResultsChunks, splitSessionChunks,
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
         loadCommonConfig, getPerformanceRepresentation, getPerformanceRank, getPerformanceScore,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
@@ -51,6 +51,24 @@ function proccessResultsChunk(chunk) {
 
 	return frameData;
 }
+function proccessSessionChunk(chunk) {
+	const frameData = {
+        event: chunk.event.Title,
+        eventSubtitle: chunk.event.Subtitle,
+	};
+	updateFrameData(frameData, "competition", chunk.performances,  p  => String(p.competition.Title));
+	updateFrameData(frameData, "order", chunk.performances,  p  => String(p.order).padStart(2, "0"));
+	updateFrameData(frameData, "name", chunk.performances,  p  => p.athlete.Surname + " " + p.athlete.GivenName);
+	updateFrameData(frameData, "repr", chunk.performances,  p  => bindTeam(p.athlete, config));
+	updateFrameData(frameData, "logo", chunk.performances,  p  => bindTeamFlag(p.athlete, config, OVS));
+	updateFrameData(frameData, "appt", chunk.performances,  p  => config.apparatus[p.frame.Apparatus_G[0]].name );
+	updateFrameData(frameData, "apptIcon", chunk.performances,  p  => config.apparatus[p.frame.Apparatus_G[0]].icon );
+	updateFrameData(frameData, "appt2", chunk.performances,  p  => p.frame.Apparatus_G.length > 1 ? config.apparatus[p.frame.Apparatus_G[1]].name : undefined );
+	updateFrameData(frameData, "appt2Icon", chunk.performances,  p  => p.frame.Apparatus_G.length > 1 ? config.apparatus[p.frame.Apparatus_G[1]].icon : undefined );
+	updateFrameData(frameData, "groupName", chunk.performances,  p  => (p.competition.Discipline === Disciplines.GROUP) ? p.GroupName : undefined);
+
+	return frameData;
+}
 
 const addPerformanceDescription = (out, p, data) => {
     const g = data.Groups[p.GroupID];
@@ -60,11 +78,18 @@ const addPerformanceDescription = (out, p, data) => {
         out.GroupName = p.GroupName;
     }
 }
+
 function onStartLists(s_sids, chunkSize) {
     const splitStart = (data, max, sid) => {
         return splitStartListChunks(data, max, sid, getPerformanceRepresentation, addPerformanceDescription)
     }
     return transformIds(s_sids, chunkSize, M, splitStart, proccessStartListChunk)
+}
+function onSession(s_sids, chunkSize) {
+    const splitSession = (data, max, sid) => {
+        return splitSessionChunks(data, max, sid, getPerformanceRepresentation, addPerformanceDescription)
+    }
+    return transformIds(s_sids, chunkSize, M, splitSession, proccessSessionChunk)
 }
 
 function onResultsLists(s_sids, chunkSize) {
@@ -229,6 +254,10 @@ export async function register(app, model, addUpdateListner) {
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
     app.get(config.root + '/results/:sids/:appt/chunk/:size', (req, res) => {
         const data = onApptResultsLists(req.params.sids, req.params.size, req.params.appt);
+        res.json(data);
+    });
+    app.get(config.root + '/sessions/:sids/chunk/:size', (req, res) => {
+        const data = onSession(req.params.sids, req.params.size) 
         res.json(data);
     });
 };

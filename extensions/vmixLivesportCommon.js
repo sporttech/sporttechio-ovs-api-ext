@@ -131,6 +131,52 @@ function splitResultsChunks(data, max, sid, options = {}) {
     return chunks;
 }
 
+function newSessionChunk(data, event, session, fids, chunkIdx, startFrameIdx, getRepr = getPerformanceRepresentation, extendPerformance = ()=>{}) {
+    const chunk = {
+        chunkIdx: chunkIdx,
+        event: event,
+        session: session,
+        performances: []
+    }
+    let order = startFrameIdx;
+    for (const fid of fids) {
+        const frame = data.Frames[fid];
+        const performance = data.Performances[frame.PerformanceID];
+        const group = data.Groups[performance.GroupID];
+        const stage = data.Stages[group.StageID];
+        const competition = data.Competitions[stage.CompetitionID];
+        const out = {
+            athlete: getRepr(performance, data),
+            frame: frame,
+            performance: performance,
+            competition: competition,
+            stage: stage,
+            group: group,
+            order: order
+        }
+        order++
+        extendPerformance(out, performance, data)
+        chunk.performances.push(out);
+    }
+    return chunk;
+}
+
+function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentation, extendPerformance = ()=>{}) {
+	const event = data.Event;
+    const session = data.Sessions[sid];
+    if (session === undefined) {
+        return [];
+    }
+    const frames = session.Frames;
+	const chunks = [];
+	const chunkSize = max;
+    for (let i = 0; i < frames.length; i += chunkSize) {
+	    const chunk = newSessionChunk(data, event, session, frames.slice(i, i+chunkSize), chunks.length, i, getRepr, extendPerformance);
+    	chunks.push(chunk);
+	}
+    return chunks;
+}
+
 function updateFrameData(frameData, key, performances, get) {
 	const lng = performances.length > 8 ? performances.length : 8;
 	for (let i = 0; i < lng; i++) {
@@ -288,6 +334,7 @@ export {
     transformIds,
     splitStartListChunks,
     splitResultsChunks,
+    splitSessionChunks,
     updateFrameData,
     bindTeam,
     bindTeamFlag,
