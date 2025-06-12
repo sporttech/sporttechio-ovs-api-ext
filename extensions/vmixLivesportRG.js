@@ -1,4 +1,4 @@
-import { transformStageList, splitStartListChunks, splitResultsChunks, 
+import { transformIds, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
         loadCommonConfig, getPerformanceRepresentation, getPerformanceRank, getPerformanceScore,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
@@ -64,7 +64,7 @@ function onStartLists(s_sids, chunkSize) {
     const splitStart = (data, max, sid) => {
         return splitStartListChunks(data, max, sid, getPerformanceRepresentation, addPerformanceDescription)
     }
-    return transformStageList(s_sids, chunkSize, M, splitStart, proccessStartListChunk)
+    return transformIds(s_sids, chunkSize, M, splitStart, proccessStartListChunk)
 }
 
 function onResultsLists(s_sids, chunkSize) {
@@ -80,7 +80,7 @@ function onResultsLists(s_sids, chunkSize) {
             extendPerformance: addPerformanceDescription,
         });
     }
-    return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk)
+    return transformIds(s_sids, chunkSize, M, splitResults, proccessResultsChunk)
 }
 
 function onApptResultsLists(s_sids, chunkSize, appt) {
@@ -121,7 +121,7 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
             addChunkDescription
         );
     }
-    return transformStageList(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
+    return transformIds(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
 }
 
 const equals = (a, b) =>
