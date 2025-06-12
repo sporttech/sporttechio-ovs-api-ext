@@ -152,7 +152,7 @@ function newSessionChunk(data, event, session, fids, chunkIdx, startFrameIdx, ge
             competition: competition,
             stage: stage,
             group: group,
-            order: order
+            order: order+1
         }
         order++
         extendPerformance(out, performance, data)
