@@ -1,4 +1,4 @@
-import { transformIds, splitStartListChunks, splitResultsChunks, 
+import { getName, transformIds, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
         loadCommonConfig, getPerformanceRepresentation,
         registerCommonEndpoints} from './vmixLivesportCommon.js';
@@ -240,10 +240,6 @@ function getSameAthletePerformance(pRef, s, M) {
     }
 
     return null;
-}
-
-function getName(a) {
-    return a.GivenName + " " + a.Surname.toUpperCase();
 }
 
 function onActiveGroups() {

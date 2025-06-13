@@ -2,6 +2,10 @@ import buffer from "circular-buffer";
 import { readFile } from 'fs/promises';
 import { listTeams } from "../model/query.js";
 
+function getName(a) {
+    return a.GivenName + " " + a.Surname.toUpperCase();
+}
+
 function transformIds(s_ids, chunkSize, M, chunkFunction, mapFunction) {
     let max = Number(chunkSize);
     if (isNaN(max)) {
@@ -331,6 +335,7 @@ function registerCommonEndpoints(app, config, model, addUpdateListner, onStartLi
 
 
 export {
+    getName,
     transformIds,
     splitStartListChunks,
     splitResultsChunks,
