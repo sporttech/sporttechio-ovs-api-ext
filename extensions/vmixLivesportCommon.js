@@ -9,7 +9,7 @@ function getName(a) {
 function transformIds(s_ids, chunkSize, M, chunkFunction, mapFunction) {
     let max = Number(chunkSize);
     if (isNaN(max)) {
-        max = -1;
+        max = 1000;
     }
     const sids = s_ids.split("-").filter(s => !Number.isNaN(Number(s)));
     const chunks = sids.map(sid => chunkFunction(M, max, Number(sid))).flat();
