@@ -31,7 +31,8 @@ function newStartListChunk(event, competition, stage, group, groupIdx, chunk) {
 function splitStartListChunks(data, max, sid, getRepr = getPerformanceRepresentation, extendPerformance = ()=>{}) {
     const chunks = [];
 	const event = data.Event;
-    const stage = data.Stages[sid];
+    const stage = data?.Stages && data.Stages[sid];
+
     if (stage === undefined) {
         return [];
     }
@@ -104,7 +105,7 @@ function splitResultsChunks(data, max, sid, options = {}) {
     setResultsOptionsDefault(options);
 	let performances = [];
 	const event = data.Event;
-	const stage = data.Stages[sid];
+	const stage = data?.Stages && data.Stages[sid];
 	const competition = data.Competitions[stage.CompetitionID];
 
     for (const gid of stage.Groups) {

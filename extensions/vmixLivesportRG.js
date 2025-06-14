@@ -94,7 +94,7 @@ function onSession(s_sids, chunkSize) {
 
 function onResultsLists(s_sids, chunkSize) {
     const splitResults =  (data, max, sid) => {
-        const stage = data?.Stages[sid];
+        const stage = data?.Stages && data?.Stages[sid];
         if (!stage) {
             return [];
         }
