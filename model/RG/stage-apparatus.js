@@ -31,7 +31,7 @@ function buildGroupAppts(apps) {
     const pairs = chunk(apps,2);
     return pairs.filter( p => {
         if (p.length == 2) {
-            return chunk[0].app !== Apparatus.NotInUse && chunk[1].app !== Apparatus.NotInUse;
+            return p[0].app !== Apparatus.NotInUse && p[1].app !== Apparatus.NotInUse;
         }
         return p[0].app !== Apparatus.NotInUse;
     });

@@ -218,7 +218,7 @@ function onActiveGroups() {
                     competitionTitle: c.Title,
                     logo: bindTeamFlag(a, config, OVS),
                     appIcon: config.apparatus[appID].icon,
-                    app2Icon: app2ID ? config.apparatus[app2ID].icon : undefined,
+                    app2Icon: app2ID ? config.apparatus[app2ID].icon : "",
                     scorePrevRoutine: undefined
                 }
                 if (c.Discipline === Disciplines.GROUP) {
