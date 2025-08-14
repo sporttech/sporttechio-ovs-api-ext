@@ -128,17 +128,24 @@ function describeFrame(fid, M) {
             state: config.frameState[f.State],
             name: performancePresent(p, M).view,
             repr: bindTeam(a, config),
-            scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
-            scoreRoutine: (f.MarkTTT_G / 1000).toFixed(3),
+            scoreTotal: (p.MarkTTT_G / 1000).toFixed(2),
+            scoreRoutine: (f.MarkTTT_G / 1000).toFixed(2),
             scoreDifficulty: (f.DifficultyT_G / 10).toFixed(1),
             scoreExecution: (f.ETotalT_G / 10).toFixed(1),
             scorePenalties: (f.PenaltyT / 10).toFixed(1),
+            scoreTime: (f.TimeTMS_G / 1000).toFixed(2),
+            scoreH: (f.Displacement_G / 100).toFixed(2),
             rank: p.Rank_G,
             eventTitle: e.Title,
             competitionTitle: c.Title,
             logo: bindTeamFlag(a, config, OVS),
             appIcon: config.apparatus[aptID].icon,
             scorePrevRoutine: undefined
+        }
+        if (c.Discipline === 1) {
+             description.scoreTime = (2 * f.TimeTMS_G / 100).toFixed(2)
+             description.scoreExecution = (f.ETotalT_G / 1000).toFixed(2)
+             description.scoreH = (f.Displacement_G / 100).toFixed(2)
         }
         // Hack for second routine
         if (fidx > 0) {
