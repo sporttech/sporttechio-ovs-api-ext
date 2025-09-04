@@ -219,6 +219,7 @@ app.use((err, req, res, next) => {
     if (!res.headersSent) {
         res.status(500).send('Internal Server Error');
     }
+    next();
 });
 
 extendDataRoute(app, model);
