@@ -48,6 +48,7 @@ if (!ovsEp) {
 }
 
 const serviceUrl = ovsUrl + ovsEp;
+const requestStatsInterval = parseInt(process.env.REQUEST_STATS_INTERVAL) || 15000; // Default 15 seconds
 let eventSource;
 
 let model = {};
@@ -90,14 +91,14 @@ function logRequestStats() {
     const now = Date.now();
     const timeSinceLastLog = now - lastRequestStatsLog;
     
-    if (timeSinceLastLog < 15000) return; // Log every 30 seconds
+    if (timeSinceLastLog < requestStatsInterval) return; // Log every N seconds
     
     if (requestStats.size === 0) {
         lastRequestStatsLog = now;
         return;
     }
     
-    console.log(clc.cyan('\n=== Request Statistics (15s) ==='));
+    console.log(clc.cyan(`\n=== Request Statistics (${requestStatsInterval/1000}s) ===`));
     
     // Sort by request count (descending)
     const sortedStats = Array.from(requestStats.entries())
