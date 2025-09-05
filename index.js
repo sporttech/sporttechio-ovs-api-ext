@@ -48,12 +48,13 @@ if (!ovsEp) {
 }
 
 const serviceUrl = ovsUrl + ovsEp;
-let eventSource = new EventSource(serviceUrl);
+let eventSource;
 
 let model = {};
 let shouldClearModel = false;
 let lastUpdateTime = Date.now();
 let updateCount = 0;
+let reconnectTimeout = null;
 
 const updateListners = [];
 function addUpdateListner(listner) {
@@ -81,85 +82,116 @@ function logUpdateStats(update) {
     lastUpdateTime = now;
 }
 
-eventSource.onmessage = function(event) {
-    try {
-        const start = process.hrtime();
-        const startMemory = process.memoryUsage();
-        
-        if (shouldClearModel) {
-            clearModel();
-        }
-        
-        const update = JSON.parse(event.data);
-        if (isEmptyUpdate(update)) {
-            return;
-        }
-
-        // Log update statistics
-        logUpdateStats(update);
-
-        // Log model size before update
-        const beforeModelSize = getObjectSize(model) / (1024 * 1024);
-        console.log(clc.yellow('Model size before update:'), `${beforeModelSize.toFixed(2)}MB`);
-
-        // Apply update with memory monitoring
-        applyUpdate(model, update);
-        model.lastUpdate = new Date();
-        
-        // Log model size after update
-        const afterModelSize = getObjectSize(model) / (1024 * 1024);
-        console.log(clc.yellow('Model size after update:'), `${afterModelSize.toFixed(2)}MB`);
-        console.log(clc.yellow('Model size change:'), `${(afterModelSize - beforeModelSize).toFixed(2)}MB`);
-
-        // Notify listeners with error handling
-        updateListners.forEach((ul) => {
-            try {
-                ul(update, model);
-            } catch (e) {
-                console.error(clc.red('Model update listener failed:'), e);
-            }
-        });
-
-        const [seconds, nanoseconds] = process.hrtime(start);
-        const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
-        const endMemory = process.memoryUsage();
-        const memoryDiff = {
-            heapUsed: Math.round((endMemory.heapUsed - startMemory.heapUsed) / 1024 / 1024),
-            heapTotal: Math.round((endMemory.heapTotal - startMemory.heapTotal) / 1024 / 1024),
-            external: Math.round((endMemory.external - startMemory.external) / 1024 / 1024),
-            rss: Math.round((endMemory.rss - startMemory.rss) / 1024 / 1024)
-        };
-
-        const date = new Date();
-        console.info(clc.blue(`${date.toLocaleTimeString()}:`), 
-            `EVENTSOURCE model-update - `, 
-            clc.whiteBright(`${milliseconds.toFixed(2)} ms`),
-            clc.cyan(`Memory: +${memoryDiff.heapUsed}MB heap, +${memoryDiff.external}MB external`)
-        );
-    } catch (error) {
-        console.error(clc.red('Error processing EventSource message:'), error);
-        console.error(clc.red('Current memory usage:'), process.memoryUsage());
-    }
-};
-
-eventSource.onerror = function(err) {
-    console.error(clc.red('EventSource failed:'), err);
-    console.error(clc.red('Current memory usage:'), process.memoryUsage());
+function setupEventSource() {
+    eventSource = new EventSource(serviceUrl);
     
-    // Attempt to reconnect after a delay
-    setTimeout(() => {
-        console.log(clc.yellow('Attempting to reconnect EventSource...'));
-        eventSource.close();
-        eventSource = new EventSource(serviceUrl);
-    }, 5000);
-};
+    eventSource.onopen = function() {
+        console.log(clc.green('=== Connection established:'), serviceUrl);
+        
+        // Cancel any pending reconnect timeout since we're connected
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+            reconnectTimeout = null;
+            console.log(clc.green('Cancelled pending reconnect timeout'));
+        }
+        
+        shouldClearModel = true;
+        lastUpdateTime = Date.now();
+        updateCount = 0;
+    };
+    
+    eventSource.onmessage = function(event) {
+        try {
+            const start = process.hrtime();
+            const startMemory = process.memoryUsage();
+            
+            if (shouldClearModel) {
+                clearModel();
+            }
+            
+            const update = JSON.parse(event.data);
+            if (isEmptyUpdate(update)) {
+                return;
+            }
 
-eventSource.onopen = function() {
-    console.log(clc.green('=== Connection established:'), serviceUrl);
-    shouldClearModel = true;
-    lastUpdateTime = Date.now();
-    updateCount = 0;
-};
+            // Log update statistics
+            logUpdateStats(update);
+
+            // Log model size before update
+            const beforeModelSize = getObjectSize(model) / (1024 * 1024);
+            console.log(clc.yellow('Model size before update:'), `${beforeModelSize.toFixed(2)}MB`);
+
+            // Apply update with memory monitoring
+            applyUpdate(model, update);
+            model.lastUpdate = new Date();
+            
+            // Log model size after update
+            const afterModelSize = getObjectSize(model) / (1024 * 1024);
+            console.log(clc.yellow('Model size after update:'), `${afterModelSize.toFixed(2)}MB`);
+            console.log(clc.yellow('Model size change:'), `${(afterModelSize - beforeModelSize).toFixed(2)}MB`);
+
+            // Notify listeners with error handling
+            updateListners.forEach((ul) => {
+                try {
+                    ul(update, model);
+                } catch (e) {
+                    console.error(clc.red('Model update listener failed:'), e);
+                }
+            });
+
+            const [seconds, nanoseconds] = process.hrtime(start);
+            const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
+            const endMemory = process.memoryUsage();
+            const memoryDiff = {
+                heapUsed: Math.round((endMemory.heapUsed - startMemory.heapUsed) / 1024 / 1024),
+                heapTotal: Math.round((endMemory.heapTotal - startMemory.heapTotal) / 1024 / 1024),
+                external: Math.round((endMemory.external - startMemory.external) / 1024 / 1024),
+                rss: Math.round((endMemory.rss - startMemory.rss) / 1024 / 1024)
+            };
+
+            const date = new Date();
+            console.info(clc.blue(`${date.toLocaleTimeString()}:`), 
+                `EVENTSOURCE model-update - `, 
+                clc.whiteBright(`${milliseconds.toFixed(2)} ms`),
+                clc.cyan(`Memory: +${memoryDiff.heapUsed}MB heap, +${memoryDiff.external}MB external`)
+            );
+        } catch (error) {
+            console.error(clc.red('Error processing EventSource message:'), error);
+            console.error(clc.red('Current memory usage:'), process.memoryUsage());
+        }
+    };
+    
+    eventSource.onerror = function(err) {
+        console.error(clc.red('\n=== EventSource Error Details ==='));
+        console.error(clc.red('Error object:'), err);
+        console.error(clc.red('Error type:'), err?.type || 'unknown');
+        console.error(clc.red('Error message:'), err?.message || 'No message');
+        console.error(clc.red('ReadyState:'), eventSource.readyState, {
+            0: 'CONNECTING',
+            1: 'OPEN', 
+            2: 'CLOSED'
+        }[eventSource.readyState] || 'UNKNOWN');
+        console.error(clc.red('URL:'), serviceUrl);
+        console.error(clc.red('Timestamp:'), new Date().toISOString());
+        console.error(clc.red('Current memory usage:'), process.memoryUsage());
+        console.error(clc.red('===============================\n'));
+        
+        // Cancel any existing reconnect timeout
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+        }
+        
+        // Attempt to reconnect after a delay
+        reconnectTimeout = setTimeout(() => {
+            console.log(clc.yellow('Attempting to reconnect EventSource...'));
+            eventSource.close();
+            setupEventSource(); // Используем функцию настройки
+        }, 5000);
+    };
+}
+
+// Initialize EventSource
+setupEventSource();
 
 // Middleware to calculate request processing time and memory usage
 app.use((req, res, next) => {
