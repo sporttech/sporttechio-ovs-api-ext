@@ -66,6 +66,6 @@
         "7":  { "name": "HBAR",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/FIXA.png"},
         "8":  { "name": "UBAR",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/ASSIMETRICAS.png"},
         "9":  { "name": "BEAM",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/TRAVE.png"},
-        "10": { "name": "REST",     "ic on": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"}
+        "10": { "name": "REST",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"}
     }
 }
