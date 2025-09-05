@@ -56,6 +56,10 @@ let lastUpdateTime = Date.now();
 let updateCount = 0;
 let reconnectTimeout = null;
 
+// Request aggregation
+let requestStats = new Map();
+let lastRequestStatsLog = Date.now();
+
 const updateListners = [];
 function addUpdateListner(listner) {
     updateListners.push(listner); 
@@ -82,6 +86,77 @@ function logUpdateStats(update) {
     lastUpdateTime = now;
 }
 
+function logRequestStats() {
+    const now = Date.now();
+    const timeSinceLastLog = now - lastRequestStatsLog;
+    
+    if (timeSinceLastLog < 15000) return; // Log every 30 seconds
+    
+    if (requestStats.size === 0) {
+        lastRequestStatsLog = now;
+        return;
+    }
+    
+    console.log(clc.cyan('\n=== Request Statistics (15s) ==='));
+    
+    // Sort by request count (descending)
+    const sortedStats = Array.from(requestStats.entries())
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 10); // Show top 10 most frequent requests
+    
+    sortedStats.forEach(([endpoint, stats]) => {
+        const avgTime = (stats.totalTime / stats.count).toFixed(2);
+        const requestsPerMinute = Math.round((stats.count / timeSinceLastLog) * 60000);
+        
+        console.log(clc.cyan(`${endpoint}:`), 
+            `${stats.count} requests,`, 
+            `avg ${avgTime}ms,`, 
+            `${requestsPerMinute}/min,`,
+            `[${Array.from(stats.statusCodes).join(',')}]`
+        );
+    });
+    
+    console.log(clc.cyan('===============================\n'));
+    
+    // Reset stats
+    requestStats.clear();
+    lastRequestStatsLog = now;
+}
+
+function trackRequest(req, res, duration, memoryDiff) {
+    const endpoint = `${req.method} ${req.originalUrl}`;
+    const statusCode = res.statusCode;
+    
+    if (!requestStats.has(endpoint)) {
+        requestStats.set(endpoint, {
+            count: 0,
+            totalTime: 0,
+            statusCodes: new Set(),
+            lastRequest: Date.now()
+        });
+    }
+    
+    const stats = requestStats.get(endpoint);
+    stats.count++;
+    stats.totalTime += duration;
+    stats.statusCodes.add(statusCode);
+    stats.lastRequest = Date.now();
+    
+    // Log individual request only if it's not a frequent one
+    if (stats.count <= 3 || (Date.now() - stats.lastRequest) > 10000) {
+        const date = new Date();
+        console.info(clc.blue(`${date.toLocaleTimeString()}:`), 
+            clc.yellow(`${req.ip} =>`), 
+            `${req.method} ${req.originalUrl} [${res.statusCode}] -`, 
+            clc.whiteBright(`${duration.toFixed(2)} ms`),
+            clc.cyan(`Memory: +${memoryDiff.heapUsed}MB heap, +${memoryDiff.external}MB external`)
+        );
+    }
+    
+    // Log aggregated stats periodically
+    logRequestStats();
+}
+
 function setupEventSource() {
     eventSource = new EventSource(serviceUrl);
     
@@ -94,7 +169,7 @@ function setupEventSource() {
             reconnectTimeout = null;
             console.log(clc.green('Cancelled pending reconnect timeout'));
         }
-        
+    
         shouldClearModel = true;
         lastUpdateTime = Date.now();
         updateCount = 0;
@@ -193,7 +268,7 @@ function setupEventSource() {
 // Initialize EventSource
 setupEventSource();
 
-// Middleware to calculate request processing time and memory usage
+// Middleware to calculate request processing time and memory usage with aggregation
 app.use((req, res, next) => {
     const start = process.hrtime();
     const startMemory = process.memoryUsage();
@@ -211,13 +286,8 @@ app.use((req, res, next) => {
             rss: Math.round((endMemory.rss - startMemory.rss) / 1024 / 1024)
         };
         
-        const date = new Date();
-        console.info(clc.blue(`${date.toLocaleTimeString()}:`), 
-            clc.yellow(`${req.ip} =>`), 
-            `${req.method} ${req.originalUrl} [${res.statusCode}] -`, 
-            clc.whiteBright(`${milliseconds.toFixed(2)} ms`),
-            clc.cyan(`Memory: +${memoryDiff.heapUsed}MB heap, +${memoryDiff.external}MB external`)
-        );
+        // Track request with aggregation
+        trackRequest(req, res, milliseconds, memoryDiff);
         
         originalEnd.call(this, chunk, encoding);
     };
