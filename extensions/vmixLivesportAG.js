@@ -51,6 +51,12 @@ function proccessResultsChunk(chunk) {
 	const frameData = {
 		competition: chunk.competition.Title,
 	};
+    if (chunk.appIcon) {
+        frameData.appIcon = chunk.appIcon;
+    }
+    if (chunk.appName) {
+        frameData.appName = chunk.appName;
+    }
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
@@ -135,6 +141,11 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
         return data.Frames[fid].TMarkTTT_G;
     };
 
+    const extendChunk = (chunk) => {
+        chunk.appIcon = config.apparatus[appMap[appt]].icon;
+        chunk.appName = config.apparatus[appMap[appt]].name;
+    }
+
     const splitResults =  (data, max, sid) => {
         const stage = data?.Stages[sid];
         if (!stage) {
@@ -144,6 +155,7 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
             getRepr: getPerformanceRepresentation,
             getRank: p => getApptRank(p, stage, appt),
             getScore: p => getApptScore(p, stage, appt, data),
+            extendChunk: extendChunk
         });
     }
     return transformIds(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
