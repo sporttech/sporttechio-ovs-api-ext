@@ -35,5 +35,8 @@
         "1":  { "name": "TSYN",    "icon": "https://eu-central-1.linodeobjects.com/sporttech-io-s3/2025-TRA-RU-assets/broadcast/appIcons/white/TRS.png"},
         "2":  { "name": "DMT",    "icon": "https://eu-central-1.linodeobjects.com/sporttech-io-s3/2025-TRA-RU-assets/broadcast/appIcons/white/DMT.png"},
         "3":  { "name": "TUM",    "icon": "https://eu-central-1.linodeobjects.com/sporttech-io-s3/2025-TRA-RU-assets/broadcast/appIcons/white/TUM.png"}
-    }
+    },
+	"options": {
+		"AthletesUseNameSurnameFormat": true
+	}
 }

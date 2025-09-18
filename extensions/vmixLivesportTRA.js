@@ -25,6 +25,9 @@ function performancePresent(p, M) {
         const a2 = M?.Athletes[p.Athletes[1]];
         return {a: a, view: a.Surname + "\\" + a2.Surname}
     }
+    if (config?.options?.AthletesUseNameSurnameFormat) {
+        return {a: a, view: a.GivenName + " " + a.Surname};
+    }
     return {a: a, view: a.Surname + " " + a.GivenName};
 }
 
@@ -34,6 +37,8 @@ function proccessStartListChunk(chunk) {
 		group: chunk.groupIdx + 1,
 		chunk: chunk.chunk
 	};
+    const aptID = chunk.competition.Discipline === 4 ? chunk.performances[0].Discipline : chunk.competition.Discipline;
+    frameData.appIcon = config.apparatus[aptID].icon;
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.view });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete.a, config); });
@@ -47,6 +52,8 @@ function proccessResultsChunk(chunk) {
 	const frameData = {
 		competition: chunk.competition.Title,
 	};
+    const aptID = chunk.competition.Discipline === 4 ? chunk.performances[0].Discipline : chunk.competition.Discipline;
+    frameData.appIcon = config.apparatus[aptID].icon;
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.view });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete.a, config); });
