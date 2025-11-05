@@ -57,15 +57,15 @@
         "4": "FAILED"
     },
     "apparatus": {
-        "1":  { "name": "FLOOR",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/SOLO.png"},
-        "2":  { "name": "VAULT",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/MESA.png"},
-        "3":  { "name": "VAULT2",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/MESA.png"},
-        "4":  { "name": "POMMEL",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/CAVALO_ALCAS.png"},
-        "5":  { "name": "RINGS",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/ARGOLA.png"},
-        "6":  { "name": "PBARS",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/PARALELAS.png"},
-        "7":  { "name": "HBAR",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/FIXA.png"},
-        "8":  { "name": "UBAR",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/ASSIMETRICAS.png"},
-        "9":  { "name": "BEAM",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/TRAVE.png"},
-        "10": { "name": "REST",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"}
+        "1":  { "name": "FLOOR",    "nameLocalised": "Solo",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/SOLO.png"},
+        "2":  { "name": "VAULT",    "nameLocalised": "Mesa",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/MESA.png"},
+        "3":  { "name": "VAULT2",   "nameLocalised": "Mesa 2",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/MESA.png"},
+        "4":  { "name": "POMMEL",   "nameLocalised": "Cavalo com Alças",   "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/CAVALO_ALCAS.png"},
+        "5":  { "name": "RINGS",    "nameLocalised": "Argolas",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/ARGOLA.png"},
+        "6":  { "name": "PBARS",    "nameLocalised": "Paralelas",    "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/PARALELAS.png"},
+        "7":  { "name": "HBAR",     "nameLocalised": "Barra Fixa",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/FIXA.png"},
+        "8":  { "name": "UBAR",     "nameLocalised": "Barras Assimétricas",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/ASSIMETRICAS.png"},
+        "9":  { "name": "BEAM",     "nameLocalised": "Trave",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/TRAVE.png"},
+        "10": { "name": "REST",     "nameLocalised": "Descanso",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"}
     }
 }

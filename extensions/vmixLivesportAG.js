@@ -146,7 +146,7 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
 
     const extendChunk = (chunk) => {
         chunk.appIcon = config.apparatus[appMap[appt]].icon;
-        chunk.appName = config.apparatus[appMap[appt]].name;
+        chunk.appName = config.apparatus[appMap[appt]].nameLocalised || config.apparatus[appMap[appt]].name;
     }
 
     const splitResults =  (data, max, sid) => {
