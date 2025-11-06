@@ -65,6 +65,7 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
+	updateFrameData(frameData, "allRoundScore", chunk.performances, ( p ) => { return p.allRoundScore ? (p.allRoundScore / 1000).toFixed(3) : ""; });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -110,7 +111,15 @@ function onSession(s_sids, chunkSize) {
     return transformIds(s_sids, chunkSize, M, splitSessionChunks, proccessSessionChunk)
 }
 function onResultsLists(s_sids, chunkSize) {
-    return transformIds(s_sids, chunkSize, M, splitResultsChunks, proccessResultsChunk)
+    const splitResults = (data, max, sid) => {
+        return splitResultsChunks(data, max, sid, {
+            getRepr: getPerformanceRepresentation,
+            extendPerformance: (pout, p) => {
+                pout.allRoundScore = p.MarkAllRoundSummaryTTT_G || 0;
+            }
+        });
+    };
+    return transformIds(s_sids, chunkSize, M, splitResults, proccessResultsChunk)
 }
 
 function findApptFrameIdx(s, appt) {
@@ -121,6 +130,18 @@ function findApptFrameIdx(s, appt) {
             }    
         }
         return -1;
+}
+
+function getApptAllRoundScore(p, s, appt, data) {
+    if (appt === "VAULT") {
+        return p.MarkAllRoundVaultTTT_G;
+    }
+    const idx = findApptFrameIdx(s, appt);
+    if (idx == -1) {
+        return 0;
+    }
+    const fid = p.Frames[idx];
+    return data.Frames[fid]?.TAllRoundMarkTTT_G || 0;
 }
 
 function onApptResultsLists(s_sids, chunkSize, appt) {
@@ -146,7 +167,7 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
 
     const extendChunk = (chunk) => {
         chunk.appIcon = config.apparatus[appMap[appt]].icon;
-        chunk.appName = config.apparatus[appMap[appt]].nameLocalised || config.apparatus[appMap[appt]].name;
+        chunk.appName = config.apparatus[appMap[appt]].name;
     }
 
     const splitResults =  (data, max, sid) => {
@@ -154,11 +175,26 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
         if (!stage) {
             return [];
         }
+        const extendPerformance = (pout, p) => {
+            if (appt === "VAULT") {
+                pout.allRoundScore = p.MarkAllRoundVaultTTT_G || 0;
+            } else {
+                const idx = findApptFrameIdx(stage, appt);
+                if (idx !== -1 && p.Frames[idx] !== undefined) {
+                    const fid = p.Frames[idx];
+                    const frame = data.Frames[fid];
+                    pout.allRoundScore = frame?.TAllRoundMarkTTT_G || 0;
+                } else {
+                    pout.allRoundScore = 0;
+                }
+            }
+        };
         return splitResultsChunks(data, max, sid, {
             getRepr: getPerformanceRepresentation,
             getRank: p => getApptRank(p, stage, appt),
             getScore: p => getApptScore(p, stage, appt, data),
-            extendChunk: extendChunk
+            extendChunk: extendChunk,
+            extendPerformance: extendPerformance
         });
     }
     return transformIds(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
@@ -277,9 +313,11 @@ function onActiveGroups() {
                 }
                 const f = M.Frames[fid];
                 const aptID = s.FrameTypes[fidx];
+                const apptName = config.apparatus[aptID].name;
+                const allRoundAptScore = getApptAllRoundScore(p, s, apptName, M);
                 const athlete = {
                     stageID: s.ID,
-                    app: config.apparatus[aptID].name,
+                    app: apptName,
                     group: s.Groups.indexOf(g.ID) + 1,
                     routine: "R" + (fidx + 1),
                     state: config.frameState[f.State],
@@ -297,7 +335,9 @@ function onActiveGroups() {
                     competitionTitle: c.Title,
                     logo: bindTeamFlag(a, config, OVS),
                     appIcon: config.apparatus[aptID].icon,
-                    scorePrevRoutine: undefined
+                    scorePrevRoutine: undefined,
+                    scoreAllRound: p.MarkAllRoundSummaryTTT_G ? (p.MarkAllRoundSummaryTTT_G / 1000).toFixed(3) : undefined,
+                    scoreAllRoundApt: allRoundAptScore ? (allRoundAptScore / 1000).toFixed(3) : undefined
                 }
                 // Hack for second VAULT2 routine
                 if (fidx > 0 && aptID === 3) {
