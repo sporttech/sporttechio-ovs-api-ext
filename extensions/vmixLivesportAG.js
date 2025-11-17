@@ -36,6 +36,7 @@ function proccessSessionChunk(chunk) {
 		chunk: chunk.chunkIdx,
         rotation: chunk.rotation,
         appName: chunk?.apparatus?.name,
+        appNameLocalised: chunk?.apparatus?.nameLocalised,
         appIcon: chunk?.apparatus?.icon
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
