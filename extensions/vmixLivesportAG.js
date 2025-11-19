@@ -1,7 +1,7 @@
 import { getName, transformIds, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
         loadCommonConfig, getPerformanceRepresentation,
-        registerCommonEndpoints} from './vmixLivesportCommon.js';
+        registerCommonEndpoints, F_PUBLISHED} from './vmixLivesportCommon.js';
 import { splitSessionPerformancesByRotationAndAppt } from '../model/AG/session.transform.js';
 import { getTeamRank, getTeamScore } from '../model/AG/performance.utils.js';
 let M = {};
@@ -67,6 +67,7 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
 	updateFrameData(frameData, "allRoundScore", chunk.performances, ( p ) => { return p.allRoundScore ? (p.allRoundScore / 1000).toFixed(3) : ""; });
+	updateFrameData(frameData, "completedApparatus", chunk.performances, ( p ) => { return p.completedApparatusCount !== undefined ? String(p.completedApparatusCount) : ""; });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -105,6 +106,36 @@ function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentati
     return chunks.map(extendChunkData);
 }
 
+function getCompletedApparatusCount(performance, data) {
+    if (!performance?.Frames || !Array.isArray(performance.Frames) || !data?.Frames) {
+        return 0;
+    }
+    let maxRotation = -1;
+    for (const fid of performance.Frames) {
+        const frame = data.Frames[fid];
+        if (!frame) {
+            continue;
+        }
+        if (frame.State !== F_PUBLISHED) {
+            continue;
+        }
+        const rotation = Number(frame.Rotation_G);
+        if (!Number.isNaN(rotation)) {
+            maxRotation = Math.max(maxRotation, rotation);
+        }
+    }
+    if (maxRotation < 0 || !performance.ApparatusRotationMapping_G) {
+        return 0;
+    }
+    for (const [completedCount, rotationIdx] of Object.entries(performance.ApparatusRotationMapping_G)) {
+        if (Number(rotationIdx) === maxRotation) {
+            const parsedCount = Number(completedCount);
+            return Number.isNaN(parsedCount) ? 0 : parsedCount+1;
+        }
+    }
+    return 0;
+}
+
 function onStartLists(s_sids, chunkSize) {
     return transformIds(s_sids, chunkSize, M, splitStartListChunks, proccessStartListChunk)
 }
@@ -115,8 +146,9 @@ function onResultsLists(s_sids, chunkSize) {
     const splitResults = (data, max, sid) => {
         return splitResultsChunks(data, max, sid, {
             getRepr: getPerformanceRepresentation,
-            extendPerformance: (pout, p) => {
+            extendPerformance: (pout, p, dataCtx) => {
                 pout.allRoundScore = p.MarkAllRoundSummaryTTT_G || 0;
+                pout.completedApparatusCount = getCompletedApparatusCount(p, dataCtx);
             }
         });
     };
