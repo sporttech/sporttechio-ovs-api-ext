@@ -69,6 +69,10 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "allRoundScore", chunk.performances, ( p ) => { return p.allRoundScore ? (p.allRoundScore / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "completedApparatus", chunk.performances, ( p ) => { return p.completedApparatusCount !== undefined ? String(p.completedApparatusCount) : ""; });
 	updateFrameData(frameData, "rotation", chunk.performances, ( p ) => { return p.rotationNumber !== undefined ? 'R' + String(p.rotationNumber) : ""; });
+	updateFrameData(frameData, "scoreDifficulty", chunk.performances, ( p ) => { return p.difficultyScore !== undefined ? (p.difficultyScore / 10).toFixed(1) : ""; });
+	updateFrameData(frameData, "scoreExecution", chunk.performances, ( p ) => { return p.executionScore !== undefined ? (p.executionScore / 1000).toFixed(3) : ""; });
+	updateFrameData(frameData, "scorePenalties", chunk.performances, ( p ) => { return p.penaltyScore !== undefined ? (p.penaltyScore / 10).toFixed(1) : ""; });
+	updateFrameData(frameData, "scoreBonus", chunk.performances, ( p ) => { return p.bonusScore !== undefined ? (p.bonusScore / 10).toFixed(1) : ""; });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -231,6 +235,18 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
                 if (!Number.isNaN(rotationNumber)) {
                     pout.rotationNumber = rotationNumber + 1;
                 }
+            }
+            if (frame?.DMarkT_G !== undefined) {
+                pout.difficultyScore = frame.DMarkT_G;
+            }
+            if (frame?.EMarkTTT_G !== undefined) {
+                pout.executionScore = frame.EMarkTTT_G;
+            }
+            if (frame?.NPenaltyT_G !== undefined) {
+                pout.penaltyScore = frame.NPenaltyT_G;
+            }
+            if (frame?.DBonusT_G !== undefined) {
+                pout.bonusScore = frame.DBonusT_G;
             }
         };
         return splitResultsChunks(data, max, sid, {
