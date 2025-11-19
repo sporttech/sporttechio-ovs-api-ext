@@ -68,6 +68,7 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
 	updateFrameData(frameData, "allRoundScore", chunk.performances, ( p ) => { return p.allRoundScore ? (p.allRoundScore / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "completedApparatus", chunk.performances, ( p ) => { return p.completedApparatusCount !== undefined ? String(p.completedApparatusCount) : ""; });
+	updateFrameData(frameData, "rotation", chunk.performances, ( p ) => { return p.rotationNumber !== undefined ? 'R' + String(p.rotationNumber) : ""; });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -208,17 +209,27 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
         if (!stage) {
             return [];
         }
+        const frameIdx = findApptFrameIdx(stage, appt);
+        const getFrameForPerformance = (p) => {
+            if (frameIdx === -1 || p.Frames[frameIdx] === undefined) {
+                return null;
+            }
+            const fid = p.Frames[frameIdx];
+            return data.Frames[fid] || null;
+        };
         const extendPerformance = (pout, p) => {
+            const frame = getFrameForPerformance(p);
             if (appt === "VAULT") {
                 pout.allRoundScore = p.MarkAllRoundVaultTTT_G || 0;
+            } else if (frame) {
+                pout.allRoundScore = frame?.TAllRoundMarkTTT_G || 0;
             } else {
-                const idx = findApptFrameIdx(stage, appt);
-                if (idx !== -1 && p.Frames[idx] !== undefined) {
-                    const fid = p.Frames[idx];
-                    const frame = data.Frames[fid];
-                    pout.allRoundScore = frame?.TAllRoundMarkTTT_G || 0;
-                } else {
-                    pout.allRoundScore = 0;
+                pout.allRoundScore = 0;
+            }
+            if (frame && frame.Rotation_G !== undefined && frame.Rotation_G !== null) {
+                const rotationNumber = Number(frame.Rotation_G);
+                if (!Number.isNaN(rotationNumber)) {
+                    pout.rotationNumber = rotationNumber + 1;
                 }
             }
         };
