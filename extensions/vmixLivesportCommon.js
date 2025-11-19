@@ -1,6 +1,7 @@
 import buffer from "circular-buffer";
 import { readFile } from 'fs/promises';
 import { listTeams } from "../model/query.js";
+import { FrameState } from "../model/constants/frameStates.js";
 
 function getName(a) {
     return a.GivenName + " " + a.Surname.toUpperCase();
@@ -207,8 +208,8 @@ function bindTeamFlag(a, config, OVS) {
 }
 
 const recentFramesInFoucs = new buffer(10);
-export const F_STARTED = 1;
-export const F_PUBLISHED = 3;
+export const F_STARTED = FrameState.STARTED;
+export const F_PUBLISHED = FrameState.PUBLISHED;
 export const F_STATES = {};
 
 F_STATES[F_STARTED] = "started";

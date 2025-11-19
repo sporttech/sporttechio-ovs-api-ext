@@ -4,6 +4,7 @@ import { getName, transformIds, splitStartListChunks, splitResultsChunks,
         registerCommonEndpoints, F_PUBLISHED} from './vmixLivesportCommon.js';
 import { splitSessionPerformancesByRotationAndAppt } from '../model/AG/session.transform.js';
 import { getTeamRank, getTeamScore } from '../model/AG/performance.utils.js';
+import { FrameSubState, getIRMCode } from '../model/constants/frameStates.js';
 let M = {};
 
 let OVS = "";
@@ -14,6 +15,55 @@ let config = {
     apparatus: {}
 };
 let appMap = {};
+
+const APPARATUS_IRM_SUBSTATES = [
+    FrameSubState.DNS,
+    FrameSubState.DSQ,
+    FrameSubState.DQB
+];
+
+const ALL_AROUND_IRM_SUBSTATES = [
+    FrameSubState.DNF
+];
+
+const FRAME_STATE_KEYS = ["State"];
+const FRAME_SUBSTATE_KEYS = ["SubState", "Substate", "SubState_G", "Substate_G", "Subsate"];
+const PERFORMANCE_STATE_KEYS = ["State_G", "State"];
+const PERFORMANCE_SUBSTATE_KEYS = ["SubState_G", "Substate_G", "SubState", "Substate", "Subsate"];
+
+function pickNumeric(source, keys) {
+    if (!source) {
+        return undefined;
+    }
+    for (const key of keys) {
+        if (source[key] === undefined || source[key] === null) {
+            continue;
+        }
+        const num = Number(source[key]);
+        if (!Number.isNaN(num)) {
+            return num;
+        }
+    }
+    return undefined;
+}
+
+function resolveFrameIRM(frame, allowedSubstates) {
+    if (!frame) {
+        return "";
+    }
+    const state = pickNumeric(frame, FRAME_STATE_KEYS);
+    const subState = pickNumeric(frame, FRAME_SUBSTATE_KEYS);
+    return getIRMCode(state, subState, allowedSubstates) || "";
+}
+
+function resolvePerformanceIRM(performance, allowedSubstates) {
+    if (!performance) {
+        return "";
+    }
+    const state = pickNumeric(performance, PERFORMANCE_STATE_KEYS);
+    const subState = pickNumeric(performance, PERFORMANCE_SUBSTATE_KEYS);
+    return getIRMCode(state, subState, allowedSubstates) || "";
+}
 
 function proccessStartListChunk(chunk) {
 	const frameData = {
@@ -73,6 +123,7 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "scoreExecution", chunk.performances, ( p ) => { return p.executionScore !== undefined ? (p.executionScore / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "scorePenalties", chunk.performances, ( p ) => { return p.penaltyScore !== undefined ? (p.penaltyScore / 10).toFixed(1) : ""; });
 	updateFrameData(frameData, "scoreBonus", chunk.performances, ( p ) => { return p.bonusScore !== undefined ? (p.bonusScore / 10).toFixed(1) : ""; });
+	updateFrameData(frameData, "IRM", chunk.performances, ( p ) => { return p.IRM || ""; });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -154,6 +205,7 @@ function onResultsLists(s_sids, chunkSize) {
             extendPerformance: (pout, p, dataCtx) => {
                 pout.allRoundScore = p.MarkAllRoundSummaryTTT_G || 0;
                 pout.completedApparatusCount = getCompletedApparatusCount(p, dataCtx);
+                pout.IRM = resolvePerformanceIRM(p, ALL_AROUND_IRM_SUBSTATES);
             }
         });
     };
@@ -248,6 +300,7 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
             if (frame?.DBonusT_G !== undefined) {
                 pout.bonusScore = frame.DBonusT_G;
             }
+            pout.IRM = resolveFrameIRM(frame, APPARATUS_IRM_SUBSTATES);
         };
         return splitResultsChunks(data, max, sid, {
             getRepr: getPerformanceRepresentation,
