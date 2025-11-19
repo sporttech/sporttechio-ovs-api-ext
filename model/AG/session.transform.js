@@ -13,8 +13,14 @@ export function splitSessionPerformancesByRotationAndAppt(M, sid, chunkSize) {
 
     while (true) {
         rotationNumber++;
-        const packs = session.Packs.map(pkid => M.Packs[pkid])
-                                    .filter(p => objectToArray(p.Rotations).some(r => r === rotationNumber));
+        const packs = session.Packs
+            .map((pkid, idx) => {
+                return {
+                    pack: M.Packs[pkid],
+                    packIndex: idx
+                };
+            })
+            .filter(p => objectToArray(p.pack.Rotations).some(r => r === rotationNumber));
         if (packs.length === 0) {
             break;
         }
@@ -38,8 +44,16 @@ export function splitSessionPerformancesByRotationAndAppt(M, sid, chunkSize) {
                 }
                 return chunked;
             }
-            const packsOnAppt = packs.filter(p => p.Rotations[fidx] === rotationNumber);
-            const performancesOnAppt = packsOnAppt.map(p => p.Performances.map(pid => M.Performances[pid]).sort(sortPerformancesInPack)).flat();
+            const packsOnAppt = packs.filter(p => p.pack.Rotations[fidx] === rotationNumber);
+            const performancesOnAppt = packsOnAppt.map(({ pack, packIndex }) => pack.Performances
+                    .map(pid => {
+                        const perf = {
+                            ...M.Performances[pid],
+                            packNumber: packIndex + 1
+                        };
+                        return perf;
+                    })
+                    .sort(sortPerformancesInPack)).flat();
             const chunkedPerformancesOnAppt = chunkSize > 0 ? chunk(performancesOnAppt, chunkSize) : [performancesOnAppt];
             
             chunks.push(...(chunkedPerformancesOnAppt.map(wrapPerformancesChunk)));
