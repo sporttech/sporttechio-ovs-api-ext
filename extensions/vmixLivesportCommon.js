@@ -126,7 +126,7 @@ function splitResultsChunks(data, max, sid, options = {}) {
 		return p1.rank - p2.rank;
 	});
 	const chunks = [];
-	const chunkSize = max;
+	const chunkSize = max > 0 ? max : performances.length || 1;
 	for (let i = 0; i < performances.length; i += chunkSize) {
 	    const chunk = newResultsChunk(event, competition, stage);
 		chunk.performances = performances.slice(i, i + chunkSize);
