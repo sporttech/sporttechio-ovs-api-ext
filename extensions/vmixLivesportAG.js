@@ -427,6 +427,20 @@ function buildApptMap(config) {
     }
 }
 
+function parseApparatusParam(apptParam) {
+    if (typeof apptParam !== "string") {
+        return [];
+    }
+    const parts = apptParam
+        .split("-")
+        .map(part => part.trim())
+        .filter(Boolean);
+    if (parts.length === 0 && apptParam.length > 0) {
+        return [apptParam];
+    }
+    return parts.length ? parts : [];
+}
+
 
 export async function register(app, model, addUpdateListner) {
     M = model;
@@ -434,7 +448,12 @@ export async function register(app, model, addUpdateListner) {
     buildApptMap(config);
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
     app.get(config.root + '/results/:sids/:appt/chunk/:size', (req, res) => {
-        const data = onApptResultsLists(req.params.sids, req.params.size, req.params.appt);
+        const appts = parseApparatusParam(req.params.appt);
+        const targets = appts.length ? appts : [req.params.appt];
+        const data = targets.reduce((acc, appt) => {
+            const chunks = onApptResultsLists(req.params.sids, req.params.size, appt);
+            return acc.concat(chunks);
+        }, []);
         res.json(data);
     });
     app.get(config.root + '/teamresults/:sids/chunk/:size', (req, res) => {
