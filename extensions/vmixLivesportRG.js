@@ -23,8 +23,8 @@ function proccessStartListChunk(chunk) {
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete); });
-	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
-	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
     if (chunk.competition.Discipline === Disciplines.GROUP) {
 	    updateFrameData(frameData, "groupName", chunk.performances, ( p ) => { return p.GroupName; } );
     }
@@ -39,8 +39,8 @@ function proccessResultsChunk(chunk) {
 	};
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete); });
-	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config); });
-	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS); } );
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
     if (chunk.competition.Discipline === Disciplines.GROUP) {
 	    updateFrameData(frameData, "groupName", chunk.performances, ( p ) => { return p.GroupName; } );
@@ -59,8 +59,8 @@ function proccessSessionChunk(chunk) {
 	updateFrameData(frameData, "competition", chunk.performances,  p  => String(p.competition.Title));
 	updateFrameData(frameData, "order", chunk.performances,  p  => String(p.order).padStart(2, "0"));
 	updateFrameData(frameData, "name", chunk.performances,  p  => getName(p.athlete));
-	updateFrameData(frameData, "repr", chunk.performances,  p  => bindTeam(p.athlete, config));
-	updateFrameData(frameData, "logo", chunk.performances,  p  => bindTeamFlag(p.athlete, config, OVS));
+	updateFrameData(frameData, "repr", chunk.performances,  p  => bindTeam(p.athlete, config, chunk.event));
+	updateFrameData(frameData, "logo", chunk.performances,  p  => bindTeamFlag(p.athlete, config, OVS, chunk.event));
 	updateFrameData(frameData, "appt", chunk.performances,  p  => config.apparatus[p.frame.Apparatus_G[0]].name );
 	updateFrameData(frameData, "apptIcon", chunk.performances,  p  => config.apparatus[p.frame.Apparatus_G[0]].icon );
 	updateFrameData(frameData, "appt2", chunk.performances,  p  => p.frame.Apparatus_G.length > 1 ? config.apparatus[p.frame.Apparatus_G[1]].name : undefined );
@@ -206,7 +206,7 @@ function onActiveGroups() {
                     routine: "R" + (idx + 1),
                     state: config.frameState[f.State],
                     name: getName(a),
-                    repr: bindTeam(a, config),
+                    repr: bindTeam(a, config, e),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
                     scoreRoutine: (f.TMarkTTT_G / 1000).toFixed(3),
                     scoreDifficulty: (f.DMarkTT_G / 100).toFixed(2),
@@ -216,7 +216,7 @@ function onActiveGroups() {
                     rank: p.Rank_G,
                     eventTitle: e.Title,
                     competitionTitle: c.Title,
-                    logo: bindTeamFlag(a, config, OVS),
+                    logo: bindTeamFlag(a, config, OVS, e),
                     appIcon: config.apparatus[appID].icon,
                     app2Icon: app2ID ? config.apparatus[app2ID].icon : "",
                     scorePrevRoutine: undefined

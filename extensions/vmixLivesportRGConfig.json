@@ -39,5 +39,6 @@
         "8":  { "name": "T3",     "icon": ""},
         "9":  { "name": "T4",     "icon": ""},
         "10":  { "name": "NOUSE",     "icon": ""}
-    }
+    },
+    "splitRepresentingByComma": false
 }

@@ -194,17 +194,55 @@ function updateFrameData(frameData, key, performances, get) {
 	}
 }
 
-function bindTeam(a, config) {
-    if (a.Representing in config.teams) {
-        return config.teams[a.Representing].name;
+function processRepresenting(representing, config, event) {
+    if (!representing || representing === '') {
+        return 'UNKNOWN';
     }
-    return a.Representing;
+    
+    // Если флаг splitRepresentingByComma не включен, возвращаем исходное значение
+    if (!config.splitRepresentingByComma) {
+        return representing;
+    }
+    
+    const ix = representing.indexOf(', ');
+    if (ix === -1) {
+        return representing;
+    }
+    
+    // Если есть флаг ShowAthleteCountryFlag в Event, возвращаем часть до запятой (страна)
+    // Иначе возвращаем часть после запятой (регион)
+    if (event && 'ShowAthleteCountryFlag' in event && event['ShowAthleteCountryFlag'] === true) {
+        return representing.substring(0, ix);
+    } else {
+        return representing.substring(ix + 2);
+    }
 }
-function bindTeamFlag(a, config, OVS) {
-    if (a.Representing in config.teams && config.teams[a.Representing].flag !== "") {
-        return config.teams[a.Representing].flag;
+
+function bindTeam(a, config, event) {
+    let representing = a.Representing;
+    
+    // Применяем логику разбиения по запятой, если включена
+    if (config.splitRepresentingByComma) {
+        representing = processRepresenting(representing, config, event);
     }
-    return `${ OVS }/static/img/assets/named/${ a.Representing }`;
+    
+    if (representing in config.teams) {
+        return config.teams[representing].name;
+    }
+    return representing;
+}
+function bindTeamFlag(a, config, OVS, event) {
+    let representing = a.Representing;
+    
+    // Применяем логику разбиения по запятой, если включена
+    if (config.splitRepresentingByComma) {
+        representing = processRepresenting(representing, config, event);
+    }
+    
+    if (representing in config.teams && config.teams[representing].flag !== "") {
+        return config.teams[representing].flag;
+    }
+    return `${ OVS }/static/img/assets/named/${ representing }`;
 }
 
 const recentFramesInFoucs = new buffer(10);

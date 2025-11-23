@@ -41,8 +41,8 @@ function proccessStartListChunk(chunk) {
     frameData.appIcon = config.apparatus[aptID].icon;
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.view });
-	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete.a, config); });
-	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete.a, config, OVS); } );
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete.a, config, chunk.event); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete.a, config, OVS, chunk.event); } );
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -56,8 +56,8 @@ function proccessResultsChunk(chunk) {
     frameData.appIcon = config.apparatus[aptID].icon;
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return p.athlete.view });
-	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete.a, config); });
-	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete.a, config, OVS); } );
+	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete.a, config, chunk.event); });
+	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete.a, config, OVS, chunk.event); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
@@ -134,7 +134,7 @@ function describeFrame(fid, M) {
             routine: "R" + (fidx + 1),
             state: config.frameState[f.State],
             name: performancePresent(p, M).view,
-            repr: bindTeam(a, config),
+            repr: bindTeam(a, config, e),
             scoreTotal: (p.MarkTTT_G / 1000).toFixed(2),
             scoreRoutine: (f.MarkTTT_G / 1000).toFixed(2),
             scoreDifficulty: (f.DifficultyT_G / 10).toFixed(1),
@@ -145,7 +145,7 @@ function describeFrame(fid, M) {
             rank: p.Rank_G,
             eventTitle: e.Title,
             competitionTitle: c.Title,
-            logo: bindTeamFlag(a, config, OVS),
+            logo: bindTeamFlag(a, config, OVS, e),
             appIcon: config.apparatus[aptID].icon,
             scorePrevRoutine: undefined
         }
