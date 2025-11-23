@@ -121,6 +121,7 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
 	updateFrameData(frameData, "allRoundScore", chunk.performances, ( p ) => { return p.allRoundScore ? (p.allRoundScore / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "VaultR1Score", chunk.performances, ( p ) => { return p.VaultR1Score !== undefined ? (p.VaultR1Score / 1000).toFixed(3) : ""; });
+	updateFrameData(frameData, "VaultBonus", chunk.performances, ( p ) => { return p.BonusVaultTTT_G !== undefined && p.BonusVaultTTT_G !== null ? (p.BonusVaultTTT_G / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "completedApparatus", chunk.performances, ( p ) => { return p.completedApparatusCount !== undefined ? String(p.completedApparatusCount) : ""; });
 	updateFrameData(frameData, "rotation", chunk.performances, ( p ) => { return p.rotationNumber !== undefined ? 'R' + String(p.rotationNumber) : ""; });
 	updateFrameData(frameData, "scoreDifficulty", chunk.performances, ( p ) => { return p.difficultyScore !== undefined ? (p.difficultyScore / 10).toFixed(1) : ""; });
@@ -311,6 +312,10 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
                     if (r1Frame && r1Frame.TMarkTTT_G !== undefined) {
                         pout.VaultR1Score = r1Frame.TMarkTTT_G;
                     }
+                }
+                // Get BonusVaultTTT_G for Vault
+                if (p.BonusVaultTTT_G !== undefined && p.BonusVaultTTT_G !== null && p.BonusVaultTTT_G > 0) {
+                    pout.BonusVaultTTT_G = p.BonusVaultTTT_G;
                 }
             } else if (frame) {
                 pout.allRoundScore = frame?.TAllRoundMarkTTT_G || 0;
