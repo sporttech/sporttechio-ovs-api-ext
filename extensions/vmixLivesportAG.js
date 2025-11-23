@@ -113,13 +113,28 @@ function proccessResultsChunk(chunk) {
     if (chunk.appName) {
         frameData.appName = chunk.appName;
     }
-	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
+	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { 
+		if (p._shouldClearScoreAndRank) {
+			return "";
+		}
+		return String(p.rank).padStart(2, "0");
+	});
 	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return p.athlete?.ExternalID || ""; });
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
-	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
-	updateFrameData(frameData, "allRoundScore", chunk.performances, ( p ) => { return p.allRoundScore ? (p.allRoundScore / 1000).toFixed(3) : ""; });
+	updateFrameData(frameData, "score", chunk.performances, ( p ) => { 
+		if (p._shouldClearScoreAndRank) {
+			return "";
+		}
+		return (p.score / 1000).toFixed(3);
+	});
+	updateFrameData(frameData, "allRoundScore", chunk.performances, ( p ) => { 
+		if (p._shouldClearScoreAndRank) {
+			return "";
+		}
+		return p.allRoundScore ? (p.allRoundScore / 1000).toFixed(3) : "";
+	});
 	updateFrameData(frameData, "VaultR1Score", chunk.performances, ( p ) => { return p.VaultR1Score !== undefined ? (p.VaultR1Score / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "VaultR2Score", chunk.performances, ( p ) => { return p.VaultR2Score !== undefined ? (p.VaultR2Score / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "VaultBonus", chunk.performances, ( p ) => { return p.BonusVaultTTT_G !== undefined && p.BonusVaultTTT_G !== null ? (p.BonusVaultTTT_G / 1000).toFixed(3) : ""; });
@@ -220,6 +235,32 @@ function getCompletedApparatusCount(performance, data) {
     return 0;
 }
 
+function hasAllApparatusOrderSet(performance, stage, data) {
+    if (!performance || !stage || !data) {
+        return false;
+    }
+    if (!performance.FramePriorities || performance.FramePriorities === null) {
+        return false;
+    }
+    const frameTypes = stage.FrameTypes;
+    const framesLimit = stage.PerfomanceFramesLimit || frameTypes.length;
+    const VAULT2_ID = appMap["VAULT2"];
+    const REST_ID = appMap["REST"];
+    
+    for (let fidx = 0; fidx < framesLimit; fidx++) {
+        const aptID = String(frameTypes[fidx]);
+        // Skip VAULT2 and REST
+        if (aptID === VAULT2_ID || aptID === REST_ID) {
+            continue;
+        }
+        const priority = performance.FramePriorities[fidx];
+        if (priority === undefined || priority === null || priority === 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function onStartLists(s_sids, chunkSize) {
     const splitStartList = (data, max, sid) => {
         return splitStartListChunks(data, max, sid, getPerformanceRepresentation, (pout, p) => {
@@ -235,12 +276,31 @@ function onSession(s_sids, chunkSize) {
 }
 function onResultsLists(s_sids, chunkSize) {
     const splitResults = (data, max, sid) => {
+        const stage = data?.Stages[sid];
         return splitResultsChunks(data, max, sid, {
             getRepr: getPerformanceRepresentation,
             extendPerformance: (pout, p, dataCtx) => {
                 pout.allRoundScore = p.MarkAllRoundSummaryTTT_G || 0;
                 pout.completedApparatusCount = getCompletedApparatusCount(p, dataCtx);
                 pout.IRM = resolvePerformanceIRM(p, ALL_AROUND_IRM_SUBSTATES);
+                
+                // Check if score and rank should be cleared
+                let shouldClear = false;
+                // Condition 1: IRM resolves to one of the configured codes
+                const clearIRMCodes = config.clearScoreAndRankIRMCodes || [];
+                if (pout.IRM && clearIRMCodes.includes(pout.IRM)) {
+                    shouldClear = true;
+                }
+                // Condition 2: Config flag is set and athlete doesn't have all apparatus order set
+                if (!shouldClear && config.ClearScoreAndRankIfNotAllApptsInSession === true) {
+                    if (!hasAllApparatusOrderSet(p, stage, dataCtx)) {
+                        shouldClear = true;
+                    }
+                }
+                if (shouldClear) {
+                    pout._shouldClearScoreAndRank = true;
+                }
+                
                 if (p.PenaltyAllRoundIndTTT_G !== undefined && p.PenaltyAllRoundIndTTT_G !== null && p.PenaltyAllRoundIndTTT_G > 0) {
                     pout.PenaltyAllRoundInd = p.PenaltyAllRoundIndTTT_G;
                 }

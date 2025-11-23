@@ -70,5 +70,7 @@
     },
     "filterSessionAptStartListFromAthletesWithoutSetApptOrder": true,
     "splitRepresentingByComma": true,
-    "AddVault2DetailsToVaultResult": true
+    "AddVault2DetailsToVaultResult": true,
+    "clearScoreAndRankIRMCodes": ["DNF", "DSQ", "DQB"],
+    "ClearScoreAndRankIfNotAllApptsInSession": true
 }
