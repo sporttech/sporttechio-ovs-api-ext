@@ -139,7 +139,8 @@ function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentati
     }
     const stage = data.Stages[session.LongestStage_G];
     const competition = data.Competitions[stage.CompetitionID];
-    const chunks = splitSessionPerformancesByRotationAndAppt(data, sid, max);
+    const filterWithoutApptOrder = config.filterSessionAptStartListFromAthletesWithoutSetApptOrder === true;
+    const chunks = splitSessionPerformancesByRotationAndAppt(data, sid, max, filterWithoutApptOrder);
     const extendChunkData = (chunk, chunkIdx) => {
         const out = {
             chunkIdx: chunkIdx,

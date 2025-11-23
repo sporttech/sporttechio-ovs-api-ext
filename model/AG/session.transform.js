@@ -1,6 +1,6 @@
 import { chunk, objectToArray } from '../../utils/array.js';
 
-export function splitSessionPerformancesByRotationAndAppt(M, sid, chunkSize) {
+export function splitSessionPerformancesByRotationAndAppt(M, sid, chunkSize, filterWithoutApptOrder = false) {
     const chunks = [];
     const session = M.Sessions[sid];
     if (session === undefined) {
@@ -52,6 +52,17 @@ export function splitSessionPerformancesByRotationAndAppt(M, sid, chunkSize) {
                             packNumber: packIndex + 1
                         };
                         return perf;
+                    })
+                    .filter(perf => {
+                        if (!filterWithoutApptOrder) {
+                            return true;
+                        }
+                        // Filter out performances without FramePriorities for this frame/apparatus
+                        return perf.FramePriorities !== undefined && 
+                               perf.FramePriorities !== null &&
+                               perf.FramePriorities[fidx] !== undefined &&
+                               perf.FramePriorities[fidx] !== null &&
+                               perf.FramePriorities[fidx] !== 0;
                     })
                     .sort(sortPerformancesInPack)).flat();
             const chunkedPerformancesOnAppt = chunkSize > 0 ? chunk(performancesOnAppt, chunkSize) : [performancesOnAppt];

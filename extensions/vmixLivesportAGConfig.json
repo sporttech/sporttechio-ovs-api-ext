@@ -67,5 +67,6 @@
         "8":  { "name": "UBAR",     "nameLocalised": "Barras Assimétricas",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/ASSIMETRICAS.png"},
         "9":  { "name": "BEAM",     "nameLocalised": "Trave",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/TRAVE.png"},
         "10": { "name": "REST",     "nameLocalised": "Descanso",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"}
-    }
+    },
+    "filterSessionAptStartListFromAthletesWithoutSetApptOrder": true
 }
