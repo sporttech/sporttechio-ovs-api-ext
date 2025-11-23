@@ -121,6 +121,7 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
 	updateFrameData(frameData, "allRoundScore", chunk.performances, ( p ) => { return p.allRoundScore ? (p.allRoundScore / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "VaultR1Score", chunk.performances, ( p ) => { return p.VaultR1Score !== undefined ? (p.VaultR1Score / 1000).toFixed(3) : ""; });
+	updateFrameData(frameData, "VaultR2Score", chunk.performances, ( p ) => { return p.VaultR2Score !== undefined ? (p.VaultR2Score / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "VaultBonus", chunk.performances, ( p ) => { return p.BonusVaultTTT_G !== undefined && p.BonusVaultTTT_G !== null ? (p.BonusVaultTTT_G / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "completedApparatus", chunk.performances, ( p ) => { return p.completedApparatusCount !== undefined ? String(p.completedApparatusCount) : ""; });
 	updateFrameData(frameData, "rotation", chunk.performances, ( p ) => { return p.rotationNumber !== undefined ? 'R' + String(p.rotationNumber) : ""; });
@@ -311,6 +312,15 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
                     const r1Frame = dataCtx.Frames[r1FrameId];
                     if (r1Frame && r1Frame.TMarkTTT_G !== undefined) {
                         pout.VaultR1Score = r1Frame.TMarkTTT_G;
+                    }
+                }
+                // Get R2 frame score for Vault (VAULT2)
+                const frameIdx2 = findApptFrameIdx(stage, "VAULT2");
+                if (frameIdx2 !== -1 && p.Frames[frameIdx2] !== undefined) {
+                    const r2FrameId = p.Frames[frameIdx2];
+                    const r2Frame = dataCtx.Frames[r2FrameId];
+                    if (r2Frame && r2Frame.State === F_PUBLISHED && r2Frame.TMarkTTT_G !== undefined) {
+                        pout.VaultR2Score = r2Frame.TMarkTTT_G;
                     }
                 }
                 // Get BonusVaultTTT_G for Vault
