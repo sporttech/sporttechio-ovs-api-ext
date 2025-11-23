@@ -133,6 +133,21 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "PenaltyAllRoundInd", chunk.performances, ( p ) => { return p.PenaltyAllRoundIndTTT_G !== undefined && p.PenaltyAllRoundIndTTT_G !== null ? (p.PenaltyAllRoundIndTTT_G / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "PenaltyAllRoundTeam", chunk.performances, ( p ) => { return p.PenaltyAllRoundTeamTTT_G !== undefined && p.PenaltyAllRoundTeamTTT_G !== null ? (p.PenaltyAllRoundTeamTTT_G / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "teamID", chunk.performances, ( p ) => { return p.teamID !== undefined ? String(p.teamID) : ""; });
+	// Add vault2Details if present
+	if (chunk.performances.some(p => p.vault2Details)) {
+		updateFrameData(frameData, "vault2Details", chunk.performances, ( p ) => {
+			if (p.vault2Details) {
+				return {
+					scoreDifficulty: p.vault2Details.scoreDifficulty !== undefined ? (p.vault2Details.scoreDifficulty / 10).toFixed(1) : "",
+					scoreExecution: p.vault2Details.scoreExecution !== undefined ? (p.vault2Details.scoreExecution / 1000).toFixed(3) : "",
+					scorePenalties: p.vault2Details.scorePenalties !== undefined ? (p.vault2Details.scorePenalties / 10).toFixed(1) : "",
+					scoreBonus: p.vault2Details.scoreBonus !== undefined ? (p.vault2Details.scoreBonus / 10).toFixed(1) : "",
+					score: p.vault2Details.score !== undefined ? (p.vault2Details.score / 1000).toFixed(3) : ""
+				};
+			}
+			return null;
+		});
+	}
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -321,6 +336,25 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
                     const r2Frame = dataCtx.Frames[r2FrameId];
                     if (r2Frame && r2Frame.State === F_PUBLISHED && r2Frame.TMarkTTT_G !== undefined) {
                         pout.VaultR2Score = r2Frame.TMarkTTT_G;
+                        // Add vault2Details if flag is enabled
+                        if (config.AddVault2DetailsToVaultResult === true) {
+                            pout.vault2Details = {};
+                            if (r2Frame.DMarkT_G !== undefined) {
+                                pout.vault2Details.scoreDifficulty = r2Frame.DMarkT_G;
+                            }
+                            if (r2Frame.EMarkTTT_G !== undefined) {
+                                pout.vault2Details.scoreExecution = r2Frame.EMarkTTT_G;
+                            }
+                            if (r2Frame.NPenaltyT_G !== undefined) {
+                                pout.vault2Details.scorePenalties = r2Frame.NPenaltyT_G;
+                            }
+                            if (r2Frame.DBonusT_G !== undefined) {
+                                pout.vault2Details.scoreBonus = r2Frame.DBonusT_G;
+                            }
+                            if (r2Frame.TMarkTTT_G !== undefined) {
+                                pout.vault2Details.score = r2Frame.TMarkTTT_G;
+                            }
+                        }
                     }
                 }
                 // Get BonusVaultTTT_G for Vault
