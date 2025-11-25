@@ -97,6 +97,20 @@ function proccessSessionChunk(chunk) {
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
 	updateFrameData(frameData, "pack", chunk.performances, ( p ) => { return p.packNumber !== undefined ? String(p.packNumber) : ""; });
 	updateFrameData(frameData, "teamID", chunk.performances, ( p ) => { return p.teamID !== undefined ? String(p.teamID) : ""; });
+    if (config.ExtendSessionsWithResults === true) {
+        updateFrameData(frameData, "scoreTotal", chunk.performances, ( p ) => { 
+            return (p.MarkTTT_G !== undefined && p.MarkTTT_G !== null) ? (p.MarkTTT_G / 1000).toFixed(3) : "";
+        });
+        updateFrameData(frameData, "score", chunk.performances, ( p ) => { 
+            return p.frame?.TMarkTTT_G !== undefined ? (p.frame.TMarkTTT_G / 1000).toFixed(3) : "";
+        });
+        updateFrameData(frameData, "state", chunk.performances, ( p ) => { 
+            return p.frame?.State !== undefined ? (config.frameState?.[p.frame.State] || "") : "";
+        });
+        updateFrameData(frameData, "rankApparatus", chunk.performances, ( p ) => { 
+            return (p.frameIdx !== undefined && p.FrameRanks_G?.[p.frameIdx] !== undefined) ? String(p.FrameRanks_G[p.frameIdx]) : "";
+        });
+    }
     frameData.competition = chunk?.competition?.Title,
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
@@ -180,6 +194,17 @@ function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentati
     const filterWithoutApptOrder = config.filterSessionAptStartListFromAthletesWithoutSetApptOrder === true;
     const chunks = splitSessionPerformancesByRotationAndAppt(data, sid, max, filterWithoutApptOrder);
     const extendChunkData = (chunk, chunkIdx) => {
+        const resolvedFrameIdx = Number.isInteger(chunk.frameIndex) ? chunk.frameIndex : -1;
+        const getFrameForPerformance = (performance) => {
+            if (!performance?.Frames || resolvedFrameIdx < 0) {
+                return null;
+            }
+            const frameId = performance.Frames[resolvedFrameIdx];
+            if (frameId === undefined || frameId === null) {
+                return null;
+            }
+            return data.Frames?.[frameId] || null;
+        };
         const out = {
             chunkIdx: chunkIdx,
 	        event: event,
@@ -188,14 +213,22 @@ function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentati
             apparatus: config.apparatus[chunk.frameType],
             rotation: 'R'+(chunk.rotation+1),
             performances: chunk.performances.map((p, idx) => {
-                const out = { ...p };
-                out.order = 1 + idx + (chunk.chunkIdx * max);
-                out.athlete = getRepr(p, data);
-                extendPerformance(out, p, data);
-                if (p.Team !== undefined && p.Team !== null && p.Team >= 0) {
-                    out.teamID = p.Team;
+                const perfOut = { ...p };
+                perfOut.order = 1 + idx + (chunk.chunkIdx * max);
+                perfOut.athlete = getRepr(p, data);
+                perfOut.performance = p;
+                if (resolvedFrameIdx >= 0) {
+                    perfOut.frameIdx = resolvedFrameIdx;
                 }
-                return out;
+                const frame = getFrameForPerformance(p);
+                if (frame) {
+                    perfOut.frame = frame;
+                }
+                extendPerformance(perfOut, p, data);
+                if (p.Team !== undefined && p.Team !== null && p.Team >= 0) {
+                    perfOut.teamID = p.Team;
+                }
+                return perfOut;
             }),
             sourceChunk: chunk
         };
