@@ -189,7 +189,7 @@ function splitSessionChunks(data, max, sid, getRepr = getPerformanceRepresentati
             rotation: 'R'+(chunk.rotation+1),
             performances: chunk.performances.map((p, idx) => {
                 const out = { ...p };
-                out.order = 1+idx + (chunk.chunkIdx === 0 ? 0 : (chunk.chunkIdx-1) * max);
+                out.order = 1 + idx + (chunk.chunkIdx * max);
                 out.athlete = getRepr(p, data);
                 extendPerformance(out, p, data);
                 if (p.Team !== undefined && p.Team !== null && p.Team >= 0) {
@@ -271,8 +271,20 @@ function onStartLists(s_sids, chunkSize) {
     };
     return transformIds(s_sids, chunkSize, M, splitStartList, proccessStartListChunk)
 }
-function onSession(s_sids, chunkSize) {
-    return transformIds(s_sids, chunkSize, M, splitSessionChunks, proccessSessionChunk)
+function onSession(s_sids, chunkSize, apparatusFilter = null) {
+    const splitSessionChunksWithFilter = (data, max, sid) => {
+        const allChunks = splitSessionChunks(data, max, sid);
+        if (!apparatusFilter || apparatusFilter.length === 0) {
+            return allChunks;
+        }
+        // Filter chunks by apparatus
+        const allowedFrameTypes = apparatusFilter.map(apptName => appMap[apptName]).filter(Boolean);
+        return allChunks.filter(chunk => {
+            const frameType = String(chunk.sourceChunk.frameType);
+            return allowedFrameTypes.some(ft => String(ft) === frameType);
+        });
+    };
+    return transformIds(s_sids, chunkSize, M, splitSessionChunksWithFilter, proccessSessionChunk)
 }
 function onResultsLists(s_sids, chunkSize) {
     const splitResults = (data, max, sid) => {
@@ -666,6 +678,12 @@ export async function register(app, model, addUpdateListner) {
     });
     app.get(config.root + '/sessions/:sids/chunk/:size', (req, res) => {
         const data = onSession(req.params.sids, req.params.size) 
+        res.json(data);
+    });
+    app.get(config.root + '/sessions/:sids/:appt/chunk/:size', (req, res) => {
+        const appts = parseApparatusParam(req.params.appt);
+        const targets = appts.length ? appts : [req.params.appt];
+        const data = onSession(req.params.sids, req.params.size, targets);
         res.json(data);
     });
 };
