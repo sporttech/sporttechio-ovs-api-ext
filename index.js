@@ -6,6 +6,7 @@ import { internalIpV4Sync } from 'internal-ip';
 import { applyUpdate, isEmptyUpdate } from './model/update.js';
 import { routes, logRoutes } from './logRoutes.js';
 import { extend as extendDataRoute } from './routes/data.js';
+import { appendB64GzipParam, appendChunksParam, decodeB64GzipData, createChunkAssembler } from './sse-handler.js';
 
 dotenv.config();
 
@@ -158,11 +159,99 @@ function trackRequest(req, res, duration, memoryDiff) {
     logRequestStats();
 }
 
+/**
+ * Обрабатывает сообщение от EventSource (обычное или собранное из чанков)
+ * @param {string} rawData - сырые данные из события
+ * @param {boolean} isChunked - флаг, указывающий что сообщение собрано из чанков
+ */
+function processEventSourceMessage(rawData, isChunked = false) {
+    try {
+        const start = process.hrtime();
+        const startMemory = process.memoryUsage();
+        
+        if (shouldClearModel) {
+            clearModel();
+        }
+        
+        // Декодируем BASE64/GZIP если нужно
+        const { data: decodedData, isCompressed } = decodeB64GzipData(rawData);
+        
+        // Формируем информацию о типе получения
+        const deliveryTypes = [];
+        if (isChunked) deliveryTypes.push('chunked');
+        if (isCompressed) deliveryTypes.push('b64gzip');
+        if (deliveryTypes.length === 0) deliveryTypes.push('simple');
+        
+        const deliveryInfo = deliveryTypes.join('+');
+        
+        // Парсим JSON
+        const update = JSON.parse(decodedData);
+        if (isEmptyUpdate(update)) {
+            return;
+        }
+
+        // Log update statistics
+        logUpdateStats(update);
+
+        // Log model size before update
+        const beforeModelSize = getObjectSize(model) / (1024 * 1024);
+        console.log(clc.yellow('Model size before update:'), `${beforeModelSize.toFixed(2)}MB`);
+
+        // Apply update with memory monitoring
+        applyUpdate(model, update);
+        model.lastUpdate = new Date();
+        
+        // Log model size after update
+        const afterModelSize = getObjectSize(model) / (1024 * 1024);
+        console.log(clc.yellow('Model size after update:'), `${afterModelSize.toFixed(2)}MB`);
+        console.log(clc.yellow('Model size change:'), `${(afterModelSize - beforeModelSize).toFixed(2)}MB`);
+
+        // Notify listeners with error handling
+        updateListners.forEach((ul) => {
+            try {
+                ul(update, model);
+            } catch (e) {
+                console.error(clc.red('Model update listener failed:'), e);
+            }
+        });
+
+        const [seconds, nanoseconds] = process.hrtime(start);
+        const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
+        const endMemory = process.memoryUsage();
+        const memoryDiff = {
+            heapUsed: Math.round((endMemory.heapUsed - startMemory.heapUsed) / 1024 / 1024),
+            heapTotal: Math.round((endMemory.heapTotal - startMemory.heapTotal) / 1024 / 1024),
+            external: Math.round((endMemory.external - startMemory.external) / 1024 / 1024),
+            rss: Math.round((endMemory.rss - startMemory.rss) / 1024 / 1024)
+        };
+
+        const date = new Date();
+        const deliveryColor = isChunked || isCompressed ? clc.magenta : clc.green;
+        console.info(clc.blue(`${date.toLocaleTimeString()}:`), 
+            `EVENTSOURCE model-update [${deliveryColor(deliveryInfo)}] - `, 
+            clc.whiteBright(`${milliseconds.toFixed(2)} ms`),
+            clc.cyan(`Memory: +${memoryDiff.heapUsed}MB heap, +${memoryDiff.external}MB external`)
+        );
+    } catch (error) {
+        console.error(clc.red('Error processing EventSource message:'), error);
+        console.error(clc.red('Current memory usage:'), process.memoryUsage());
+    }
+}
+
 function setupEventSource() {
-    eventSource = new EventSource(serviceUrl);
+    // Добавляем параметры к URL
+    let streamUrl = appendB64GzipParam(serviceUrl);
+    streamUrl = appendChunksParam(streamUrl);
+    
+    console.log(clc.cyan('Connecting to SSE stream with parameters:'));
+    console.log(clc.cyan('  - accept-b64-gzip=true'));
+    console.log(clc.cyan('  - accept-sse-chunks=true'));
+    console.log(clc.cyan('URL:'), streamUrl);
+    
+    eventSource = new EventSource(streamUrl);
     
     eventSource.onopen = function() {
-        console.log(clc.green('=== Connection established:'), serviceUrl);
+        console.log(clc.green('=== Connection established:'), streamUrl);
         
         // Cancel any pending reconnect timeout since we're connected
         if (reconnectTimeout) {
@@ -176,66 +265,21 @@ function setupEventSource() {
         updateCount = 0;
     };
     
+    // Обработчик для обычных сообщений
     eventSource.onmessage = function(event) {
-        try {
-            const start = process.hrtime();
-            const startMemory = process.memoryUsage();
-            
-            if (shouldClearModel) {
-                clearModel();
-            }
-            
-            const update = JSON.parse(event.data);
-            if (isEmptyUpdate(update)) {
-                return;
-            }
-
-            // Log update statistics
-            logUpdateStats(update);
-
-            // Log model size before update
-            const beforeModelSize = getObjectSize(model) / (1024 * 1024);
-            console.log(clc.yellow('Model size before update:'), `${beforeModelSize.toFixed(2)}MB`);
-
-            // Apply update with memory monitoring
-            applyUpdate(model, update);
-            model.lastUpdate = new Date();
-            
-            // Log model size after update
-            const afterModelSize = getObjectSize(model) / (1024 * 1024);
-            console.log(clc.yellow('Model size after update:'), `${afterModelSize.toFixed(2)}MB`);
-            console.log(clc.yellow('Model size change:'), `${(afterModelSize - beforeModelSize).toFixed(2)}MB`);
-
-            // Notify listeners with error handling
-            updateListners.forEach((ul) => {
-                try {
-                    ul(update, model);
-                } catch (e) {
-                    console.error(clc.red('Model update listener failed:'), e);
-                }
-            });
-
-            const [seconds, nanoseconds] = process.hrtime(start);
-            const milliseconds = (seconds * 1e3) + (nanoseconds * 1e-6);
-            const endMemory = process.memoryUsage();
-            const memoryDiff = {
-                heapUsed: Math.round((endMemory.heapUsed - startMemory.heapUsed) / 1024 / 1024),
-                heapTotal: Math.round((endMemory.heapTotal - startMemory.heapTotal) / 1024 / 1024),
-                external: Math.round((endMemory.external - startMemory.external) / 1024 / 1024),
-                rss: Math.round((endMemory.rss - startMemory.rss) / 1024 / 1024)
-            };
-
-            const date = new Date();
-            console.info(clc.blue(`${date.toLocaleTimeString()}:`), 
-                `EVENTSOURCE model-update - `, 
-                clc.whiteBright(`${milliseconds.toFixed(2)} ms`),
-                clc.cyan(`Memory: +${memoryDiff.heapUsed}MB heap, +${memoryDiff.external}MB external`)
-            );
-        } catch (error) {
-            console.error(clc.red('Error processing EventSource message:'), error);
-            console.error(clc.red('Current memory usage:'), process.memoryUsage());
-        }
+        processEventSourceMessage(event.data);
     };
+    
+    // Обработчик для чанков
+    const handleChunk = createChunkAssembler((fullMessage) => {
+        // После сборки чанков применяем декодирование BASE64/GZIP и обработку
+        // Передаем isChunked=true чтобы показать в логе что это chunked
+        processEventSourceMessage(fullMessage, true);
+    });
+    
+    eventSource.addEventListener("chunk", (event) => {
+        handleChunk(event.data);
+    });
     
     eventSource.onerror = function(err) {
         console.error(clc.red('\n=== EventSource Error Details ==='));
