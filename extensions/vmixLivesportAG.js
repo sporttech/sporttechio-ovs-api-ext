@@ -111,6 +111,12 @@ function proccessSessionChunk(chunk) {
             return (p.frameIdx !== undefined && p.FrameRanks_G?.[p.frameIdx] !== undefined) ? String(p.FrameRanks_G[p.frameIdx]) : "";
         });
     }
+    updateFrameData(frameData, "frameTeamPoints", chunk.performances, ( p ) => { 
+        return p.frame?.TeamPoints_G !== undefined && p.frame.TeamPoints_G !== null ? String(p.frame.TeamPoints_G) : "";
+    });
+    updateFrameData(frameData, "performanceTeamPoints", chunk.performances, ( p ) => { 
+        return (p.performance?.TeamPoints_G !== undefined && p.performance.TeamPoints_G !== null) || (p.TeamPoints_G !== undefined && p.TeamPoints_G !== null) ? String(p.performance?.TeamPoints_G || p.TeamPoints_G) : "";
+    });
     frameData.competition = chunk?.competition?.Title,
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
@@ -162,6 +168,12 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "PenaltyAllRoundInd", chunk.performances, ( p ) => { return p.PenaltyAllRoundIndTTT_G !== undefined && p.PenaltyAllRoundIndTTT_G !== null ? (p.PenaltyAllRoundIndTTT_G / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "PenaltyAllRoundTeam", chunk.performances, ( p ) => { return p.PenaltyAllRoundTeamTTT_G !== undefined && p.PenaltyAllRoundTeamTTT_G !== null ? (p.PenaltyAllRoundTeamTTT_G / 1000).toFixed(3) : ""; });
 	updateFrameData(frameData, "teamID", chunk.performances, ( p ) => { return p.teamID !== undefined ? String(p.teamID) : ""; });
+	updateFrameData(frameData, "performanceTeamPoints", chunk.performances, ( p ) => { 
+		return p.performanceTeamPoints !== undefined ? String(p.performanceTeamPoints) : "";
+	});
+	updateFrameData(frameData, "frameTeamPoints", chunk.performances, ( p ) => { 
+		return p.frameTeamPoints !== undefined ? String(p.frameTeamPoints) : "";
+	});
 	// Add vault2Details if present
 	if (chunk.performances.some(p => p.vault2Details)) {
 		updateFrameData(frameData, "vault2Details", chunk.performances, ( p ) => {
@@ -352,6 +364,9 @@ function onResultsLists(s_sids, chunkSize) {
                 if (p.PenaltyAllRoundTeamTTT_G !== undefined && p.PenaltyAllRoundTeamTTT_G !== null && p.PenaltyAllRoundTeamTTT_G > 0) {
                     pout.PenaltyAllRoundTeam = p.PenaltyAllRoundTeamTTT_G;
                 }
+                if (p.TeamPoints_G !== undefined && p.TeamPoints_G !== null) {
+                    pout.performanceTeamPoints = p.TeamPoints_G;
+                }
                 if (p.Team !== undefined && p.Team !== null && p.Team >= 0) {
                     pout.teamID = p.Team;
                 }
@@ -489,7 +504,13 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
             if (frame?.DBonusT_G !== undefined) {
                 pout.bonusScore = frame.DBonusT_G;
             }
+            if (frame?.TeamPoints_G !== undefined && frame.TeamPoints_G !== null) {
+                pout.frameTeamPoints = frame.TeamPoints_G;
+            }
             pout.IRM = resolveFrameIRM(frame, APPARATUS_IRM_SUBSTATES);
+            if (p.TeamPoints_G !== undefined && p.TeamPoints_G !== null) {
+                pout.performanceTeamPoints = p.TeamPoints_G;
+            }
             if (p.Team !== undefined && p.Team !== null && p.Team >= 0) {
                 pout.teamID = p.Team;
             }
@@ -542,7 +563,10 @@ function proccessTeamResultsChunk(chunk) {
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
-	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
+	updateFrameData(frameData, "score", chunk.performances, ( p ) => { 
+		const isVersusMode = chunk.stage?.CalcOptions?.includes(13);
+		return isVersusMode ? p.score.toString() : (p.score / 1000).toFixed(3);
+	});
 	updateFrameData(frameData, "pscore", chunk.performances, ( p ) => { return (p.prevScore / 1000).toFixed(3) });
 	updateFrameData(frameData, "arscore", chunk.performances, ( p ) => { return (p.ARScore / 1000).toFixed(3) });
 	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return p.athlete?.ExternalID || ""; });
@@ -643,7 +667,9 @@ function onActiveGroups() {
                     appIcon: config.apparatus[aptID].icon,
                     scorePrevRoutine: undefined,
                     scoreAllRound: p.MarkAllRoundSummaryTTT_G ? (p.MarkAllRoundSummaryTTT_G / 1000).toFixed(3) : undefined,
-                    scoreAllRoundApt: allRoundAptScore ? (allRoundAptScore / 1000).toFixed(3) : undefined
+                    scoreAllRoundApt: allRoundAptScore ? (allRoundAptScore / 1000).toFixed(3) : undefined,
+                    frameTeamPoints: f.TeamPoints_G !== undefined && f.TeamPoints_G !== null ? f.TeamPoints_G : undefined,
+                    performanceTeamPoints: p.TeamPoints_G !== undefined && p.TeamPoints_G !== null ? p.TeamPoints_G : undefined
                 }
                 if (p.Team !== undefined && p.Team !== null && p.Team >= 0) {
                     athlete.teamID = p.Team;
