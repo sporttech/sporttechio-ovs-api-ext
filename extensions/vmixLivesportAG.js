@@ -545,13 +545,38 @@ function mergeTeams(plist) {
     return mapped;
 }
 
-function addTeam(pout, p, data) {
+function formatTeamScore(stage, score) {
+	if (score === undefined || score === null || score === "") {
+		return "";
+	}
+	const isVersusMode = stage?.CalcOptions?.includes(13);
+	return isVersusMode ? score.toString() : (score / 1000).toFixed(3);
+}
+
+function addTeam(pout, p, data, stage) {
     if (p.Team >= 0) {
         pout.teamID = p.Team;
         pout.ARScore = p.MarkAllRoundTeamSummaryTTT_G;
         if (p.PrevPerformanceID_G && p.PrevPerformanceID_G !== -1) {
             const prev = data.Performances[p.PrevPerformanceID_G];
             pout.prevScore = getTeamScore(prev);
+        }
+        
+        // Add apparatus team scores
+        if (stage && stage.FrameTypes && p.FrameTeamMarks_G) {
+            const framesLimit = stage.PerfomanceFramesLimit || stage.FrameTypes.length;
+            pout.teamApparatusScores = {};
+            for (let i = 0; i < framesLimit; i++) {
+                const aptID = String(stage.FrameTypes[i]);
+                const apparatus = config.apparatus[aptID];
+                if (apparatus && apparatus.name) {
+                    const apptName = apparatus.name;
+                    const teamMark = p.FrameTeamMarks_G[i];
+                    if (teamMark !== undefined && teamMark !== null) {
+                        pout.teamApparatusScores[apptName] = teamMark;
+                    }
+                }
+            }
         }
     }
 }
@@ -564,13 +589,30 @@ function proccessTeamResultsChunk(chunk) {
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { 
-		const isVersusMode = chunk.stage?.CalcOptions?.includes(13);
-		return isVersusMode ? p.score.toString() : (p.score / 1000).toFixed(3);
+		return formatTeamScore(chunk.stage, p.score);
 	});
 	updateFrameData(frameData, "pscore", chunk.performances, ( p ) => { return (p.prevScore / 1000).toFixed(3) });
 	updateFrameData(frameData, "arscore", chunk.performances, ( p ) => { return (p.ARScore / 1000).toFixed(3) });
 	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return p.athlete?.ExternalID || ""; });
 	updateFrameData(frameData, "teamID", chunk.performances, ( p ) => { return p.teamID !== undefined ? String(p.teamID) : ""; });
+	
+	// Add dynamic fields for each apparatus team score
+	if (chunk.stage && chunk.stage.FrameTypes) {
+		const framesLimit = chunk.stage.PerfomanceFramesLimit || chunk.stage.FrameTypes.length;
+		for (let i = 0; i < framesLimit; i++) {
+			const aptID = String(chunk.stage.FrameTypes[i]);
+			const apparatus = config.apparatus[aptID];
+			if (apparatus && apparatus.name) {
+				const apptName = apparatus.name;
+				const fieldName = `TeamScore_${apptName}`;
+				updateFrameData(frameData, fieldName, chunk.performances, ( p ) => {
+					const value = p.teamApparatusScores?.[apptName];
+					return formatTeamScore(chunk.stage, value);
+				});
+			}
+		}
+	}
+	
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
 
@@ -583,11 +625,14 @@ function onTeamResultsLists(s_sids, chunkSize) {
         if (!stage) {
             return [];
         }
+        const addTeamWithStage = (pout, p, dataCtx) => {
+            addTeam(pout, p, dataCtx, stage);
+        };
         return splitResultsChunks(data, max, sid, {
             getRepr: getPerformanceRepresentation,
             getRank: p => getTeamRank(p),
             getScore: p => getTeamScore(p),
-            extendPerformance: addTeam,
+            extendPerformance: addTeamWithStage,
             groupPerformances: (plist => mergeTeams(plist))
         });
     }
