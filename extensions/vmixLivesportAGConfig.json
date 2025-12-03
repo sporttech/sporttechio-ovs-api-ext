@@ -73,5 +73,6 @@
     "AddVault2DetailsToVaultResult": true,
     "ExtendSessionsWithResults": true,
     "clearScoreAndRankIRMCodes": ["DNF", "DSQ", "DQB"],
-    "ClearScoreAndRankIfNotAllApptsInSession": true
+    "ClearScoreAndRankIfNotAllApptsInSession": true,
+    "UseAthleteIDInsteadOfBib": true
 }

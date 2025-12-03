@@ -47,6 +47,16 @@ function pickNumeric(source, keys) {
     return undefined;
 }
 
+function getBibValue(athlete) {
+    if (!athlete) {
+        return "";
+    }
+    if (config.UseAthleteIDInsteadOfBib === true) {
+        return athlete.ID !== undefined && athlete.ID !== null ? String(athlete.ID) : "";
+    }
+    return athlete.ExternalID || "";
+}
+
 function resolveFrameIRM(frame, allowedSubstates) {
     if (!frame) {
         return "";
@@ -72,7 +82,7 @@ function proccessStartListChunk(chunk) {
 		chunk: chunk.chunk
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
-	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return p.athlete?.ExternalID || ""; });
+	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return getBibValue(p.athlete); });
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
@@ -91,7 +101,7 @@ function proccessSessionChunk(chunk) {
         appIcon: chunk?.apparatus?.icon
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
-	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return p.athlete?.ExternalID || ""; });
+	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return getBibValue(p.athlete); });
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
@@ -139,7 +149,7 @@ function proccessResultsChunk(chunk) {
 		}
 		return String(p.rank).padStart(2, "0");
 	});
-	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return p.athlete?.ExternalID || ""; });
+	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return getBibValue(p.athlete); });
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
@@ -593,7 +603,7 @@ function proccessTeamResultsChunk(chunk) {
 	});
 	updateFrameData(frameData, "pscore", chunk.performances, ( p ) => { return (p.prevScore / 1000).toFixed(3) });
 	updateFrameData(frameData, "arscore", chunk.performances, ( p ) => { return (p.ARScore / 1000).toFixed(3) });
-	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return p.athlete?.ExternalID || ""; });
+	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return getBibValue(p.athlete); });
 	updateFrameData(frameData, "teamID", chunk.performances, ( p ) => { return p.teamID !== undefined ? String(p.teamID) : ""; });
 	
 	// Add dynamic fields for each apparatus team score
@@ -696,7 +706,7 @@ function onActiveGroups() {
                     group: s.Groups.indexOf(g.ID) + 1,
                     routine: "R" + (fidx + 1),
                     state: config.frameState[f.State],
-                    bib: a.ExternalID,
+                    bib: getBibValue(a),
                     name: getName(a),
                     repr: bindTeam(a, config, e),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
