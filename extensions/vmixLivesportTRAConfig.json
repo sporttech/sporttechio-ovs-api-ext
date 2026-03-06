@@ -37,7 +37,9 @@
         "3":  { "name": "TUM",    "icon": "https://eu-central-1.linodeobjects.com/sporttech-io-s3/2025-TRA-RU-assets/broadcast/appIcons/white/TUM.png"}
     },
 	"options": {
-		"AthletesUseNameSurnameFormat": true
+		"AthletesUseNameSurnameFormat": true,
+		"ExtendResultsWithRoutineDetails": true,
+		"ExtendStartListsWithRoutineDetails": true
 	},
 	"splitRepresentingByComma": false
 }
