@@ -57,6 +57,10 @@ function getBibValue(athlete) {
     return athlete.ExternalID || "";
 }
 
+function getRawRepresenting(athlete) {
+    return athlete?.Representing ?? "";
+}
+
 function resolveFrameIRM(frame, allowedSubstates) {
     if (!frame) {
         return "";
@@ -86,6 +90,9 @@ function proccessStartListChunk(chunk) {
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
+	if (config.AddRawRepresentingColumn === true) {
+		updateFrameData(frameData, "rawRepr", chunk.performances, ( p ) => getRawRepresenting(p.athlete));
+	}
 	updateFrameData(frameData, "teamID", chunk.performances, ( p ) => { return p.teamID !== undefined ? String(p.teamID) : ""; });
 	frameData.event = chunk.event.Title;
 	frameData.eventSubtitle = chunk.event.Subtitle;
@@ -105,6 +112,9 @@ function proccessSessionChunk(chunk) {
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
+	if (config.AddRawRepresentingColumn === true) {
+		updateFrameData(frameData, "rawRepr", chunk.performances, ( p ) => getRawRepresenting(p.athlete));
+	}
 	updateFrameData(frameData, "pack", chunk.performances, ( p ) => { return p.packNumber !== undefined ? String(p.packNumber) : ""; });
 	updateFrameData(frameData, "teamID", chunk.performances, ( p ) => { return p.teamID !== undefined ? String(p.teamID) : ""; });
     if (config.ExtendSessionsWithResults === true) {
@@ -153,6 +163,9 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
+	if (config.AddRawRepresentingColumn === true) {
+		updateFrameData(frameData, "rawRepr", chunk.performances, ( p ) => getRawRepresenting(p.athlete));
+	}
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { 
 		if (p._shouldClearScoreAndRank) {
 			return "";
@@ -598,7 +611,10 @@ function proccessTeamResultsChunk(chunk) {
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
-	updateFrameData(frameData, "score", chunk.performances, ( p ) => { 
+	if (config.AddRawRepresentingColumn === true) {
+		updateFrameData(frameData, "rawRepr", chunk.performances, ( p ) => getRawRepresenting(p.athlete));
+	}
+	updateFrameData(frameData, "score", chunk.performances, ( p ) => {
 		return formatTeamScore(chunk.stage, p.score);
 	});
 	updateFrameData(frameData, "pscore", chunk.performances, ( p ) => { return (p.prevScore / 1000).toFixed(3) });
@@ -709,6 +725,7 @@ function onActiveGroups() {
                     bib: getBibValue(a),
                     name: getName(a),
                     repr: bindTeam(a, config, e),
+                    ...(config.AddRawRepresentingColumn === true && { rawRepr: getRawRepresenting(a) }),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
                     scoreRoutine: (f.TMarkTTT_G / 1000).toFixed(3),
                     scoreDifficulty: (f.DMarkT_G / 10).toFixed(1),

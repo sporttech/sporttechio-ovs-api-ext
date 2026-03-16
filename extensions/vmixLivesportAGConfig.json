@@ -74,5 +74,6 @@
     "ExtendSessionsWithResults": true,
     "clearScoreAndRankIRMCodes": ["DNF", "DSQ", "DQB"],
     "ClearScoreAndRankIfNotAllApptsInSession": true,
-    "UseAthleteIDInsteadOfBib": true
+    "UseAthleteIDInsteadOfBib": true,
+    "AddRawRepresentingColumn": true
 }
