@@ -3,8 +3,13 @@ import { readFile } from 'fs/promises';
 import { listTeams } from "../model/query.js";
 import { FrameState } from "../model/constants/frameStates.js";
 
-function getName(a) {
-    return a.GivenName + " " + a.Surname.toUpperCase();
+function getName(a, config) {
+    let given = a.GivenName || "";
+    if (config?.options?.SplitNameAndPatronimicInGivenName || config?.SplitNameAndPatronimicInGivenName) {
+        const parts = given.trim().split(/\s+/);
+        given = parts[0] || given;
+    }
+    return given + " " + (a.Surname || "").toUpperCase();
 }
 
 function transformIds(s_ids, chunkSize, M, chunkFunction, mapFunction) {

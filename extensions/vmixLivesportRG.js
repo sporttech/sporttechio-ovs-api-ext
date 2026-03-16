@@ -22,7 +22,7 @@ function proccessStartListChunk(chunk) {
 		chunk: chunk.chunk
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete); });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete, config); });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
     if (chunk.competition.Discipline === Disciplines.GROUP) {
@@ -38,7 +38,7 @@ function proccessResultsChunk(chunk) {
 		competition: chunk.competition.Title,
 	};
 	updateFrameData(frameData, "rank", chunk.performances, ( p ) => { return String(p.rank).padStart(2, "0")});
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete); });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete, config); });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
 	updateFrameData(frameData, "score", chunk.performances, ( p ) => { return (p.score / 1000).toFixed(3) });
@@ -58,7 +58,7 @@ function proccessSessionChunk(chunk) {
 	};
 	updateFrameData(frameData, "competition", chunk.performances,  p  => String(p.competition.Title));
 	updateFrameData(frameData, "order", chunk.performances,  p  => String(p.order).padStart(2, "0"));
-	updateFrameData(frameData, "name", chunk.performances,  p  => getName(p.athlete));
+	updateFrameData(frameData, "name", chunk.performances,  p  => getName(p.athlete, config));
 	updateFrameData(frameData, "repr", chunk.performances,  p  => bindTeam(p.athlete, config, chunk.event));
 	updateFrameData(frameData, "logo", chunk.performances,  p  => bindTeamFlag(p.athlete, config, OVS, chunk.event));
 	updateFrameData(frameData, "appt", chunk.performances,  p  => config.apparatus[p.frame.Apparatus_G[0]].name );
@@ -205,7 +205,7 @@ function onActiveGroups() {
                     group: s.Groups.indexOf(g.ID) + 1,
                     routine: "R" + (idx + 1),
                     state: config.frameState[f.State],
-                    name: getName(a),
+                    name: getName(a, config),
                     repr: bindTeam(a, config, e),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
                     scoreRoutine: (f.TMarkTTT_G / 1000).toFixed(3),

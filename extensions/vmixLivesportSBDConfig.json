@@ -1,0 +1,16 @@
+{
+  "root": "/vmix/sbd",
+  "teams": {
+  },
+  "frameState": {
+    "0": "NSTART",
+    "1": "PERFORM",
+    "2": "SCORING",
+    "3": "PUBLISHED",
+    "4": "FAILED"
+  },
+  "apparatus": {},
+  "splitRepresentingByComma": true,
+  "SplitNameAndPatronimicInGivenName": true
+}
+

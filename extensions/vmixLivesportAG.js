@@ -87,7 +87,7 @@ function proccessStartListChunk(chunk) {
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
 	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return getBibValue(p.athlete); });
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete, config) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
 	if (config.AddRawRepresentingColumn === true) {
@@ -109,7 +109,7 @@ function proccessSessionChunk(chunk) {
 	};
 	updateFrameData(frameData, "order", chunk.performances, ( p ) => { return String(p.order).padStart(2, "0")});
 	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return getBibValue(p.athlete); });
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete, config) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
 	if (config.AddRawRepresentingColumn === true) {
@@ -160,7 +160,7 @@ function proccessResultsChunk(chunk) {
 		return String(p.rank).padStart(2, "0");
 	});
 	updateFrameData(frameData, "bib", chunk.performances, ( p ) => { return getBibValue(p.athlete); });
-	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete) });
+	updateFrameData(frameData, "name", chunk.performances, ( p ) => { return getName(p.athlete, config) });
 	updateFrameData(frameData, "repr", chunk.performances, ( p ) => { return bindTeam(p.athlete, config, chunk.event); });
 	updateFrameData(frameData, "logo", chunk.performances, ( p ) => { return bindTeamFlag(p.athlete, config, OVS, chunk.event); } );
 	if (config.AddRawRepresentingColumn === true) {
@@ -723,7 +723,7 @@ function onActiveGroups() {
                     routine: "R" + (fidx + 1),
                     state: config.frameState[f.State],
                     bib: getBibValue(a),
-                    name: getName(a),
+                    name: getName(a, config),
                     repr: bindTeam(a, config, e),
                     ...(config.AddRawRepresentingColumn === true && { rawRepr: getRawRepresenting(a) }),
                     scoreTotal: (p.MarkTTT_G / 1000).toFixed(3),
