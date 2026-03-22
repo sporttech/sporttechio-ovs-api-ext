@@ -236,6 +236,22 @@ function bindTeam(a, config, event) {
     }
     return representing;
 }
+function bindTeam2(a, config, event) {
+    let representing = a.Representing;
+    
+    // Применяем логику разбиения по запятой, если включена
+    if (config.splitRepresentingByComma) {
+        representing = processRepresenting(representing, config, event);
+    }
+    
+    if (representing in config.teams) {
+        if (config.teams[representing].name2 === undefined) {
+            return config.teams[representing].name;
+        }
+        return config.teams[representing].name2;
+    }
+    return representing;
+}
 function bindTeamFlag(a, config, OVS, event) {
     let representing = a.Representing;
     
@@ -387,6 +403,7 @@ export {
     splitSessionChunks,
     updateFrameData,
     bindTeam,
+    bindTeam2,
     bindTeamFlag,
     updateFramesInFocus,
     recentFrames,
