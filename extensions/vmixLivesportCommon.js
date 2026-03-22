@@ -12,6 +12,26 @@ function getName(a, config) {
     return given + " " + (a.Surname || "").toUpperCase();
 }
 
+function fullYearsFromDob(athlete, refDate = new Date()) {
+    const dob = athlete?.DateOfBirth;
+    if (dob === undefined || dob === null || dob === "") {
+        return "";
+    }
+    const birth = new Date(dob);
+    if (isNaN(birth.getTime())) {
+        return "";
+    }
+    let age = refDate.getFullYear() - birth.getFullYear();
+    const m = refDate.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && refDate.getDate() < birth.getDate())) {
+        age--;
+    }
+    if (age < 0) {
+        return "";
+    }
+    return String(age);
+}
+
 function transformIds(s_ids, chunkSize, M, chunkFunction, mapFunction) {
     let max = Number(chunkSize);
     if (isNaN(max)) {
@@ -397,6 +417,7 @@ function registerCommonEndpoints(app, config, model, addUpdateListner, onStartLi
 
 export {
     getName,
+    fullYearsFromDob,
     transformIds,
     splitStartListChunks,
     splitResultsChunks,

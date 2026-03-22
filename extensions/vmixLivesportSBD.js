@@ -1,5 +1,6 @@
 import {
     getName,
+    fullYearsFromDob,
     transformIds,
     splitStartListChunks,
     splitResultsChunks,
@@ -18,7 +19,8 @@ let config = {
     teams: {},
     root: "/vmix/sbd",
     frameState: {},
-    apparatus: {}
+    apparatus: {},
+    includeAthleteAge: false
 };
 
 function proccessStartListChunkSBD(chunk) {
@@ -40,6 +42,9 @@ function proccessStartListChunkSBD(chunk) {
     updateFrameData(frameData, "logo", chunk.performances, (p) => {
         return bindTeamFlag(p.athlete, config, OVS, chunk.event);
     });
+    if (config.includeAthleteAge === true) {
+        updateFrameData(frameData, "age", chunk.performances, (p) => fullYearsFromDob(p.athlete));
+    }
 
     frameData.event = chunk.event.Title;
     frameData.eventSubtitle = chunk.event.Subtitle;
@@ -86,6 +91,9 @@ function proccessResultsChunkSBD(chunk) {
     updateFrameData(frameData, "runTypeR1", chunk.performances, (p) => p.runTypeR1 ?? "");
     updateFrameData(frameData, "runTypeR2", chunk.performances, (p) => p.runTypeR2 ?? "");
     updateFrameData(frameData, "runTypeR3", chunk.performances, (p) => p.runTypeR3 ?? "");
+    if (config.includeAthleteAge === true) {
+        updateFrameData(frameData, "age", chunk.performances, (p) => fullYearsFromDob(p.athlete));
+    }
 
     frameData.event = chunk.event.Title;
     frameData.eventSubtitle = chunk.event.Subtitle;
@@ -145,6 +153,9 @@ function describeFrameSBD(fid, M) {
         HL_G: f.HL_G ?? "",
         RunType: f.RunType_G ?? f.RunType ?? ""
     };
+    if (config.includeAthleteAge === true) {
+        description.age = fullYearsFromDob(a);
+    }
 
     return description;
 }

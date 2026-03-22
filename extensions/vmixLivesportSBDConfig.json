@@ -11,6 +11,7 @@
   },
   "apparatus": {},
   "splitRepresentingByComma": true,
-  "SplitNameAndPatronimicInGivenName": true
+  "SplitNameAndPatronimicInGivenName": true,
+  "includeAthleteAge": true
 }
 
