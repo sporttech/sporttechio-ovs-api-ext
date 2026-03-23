@@ -23,6 +23,10 @@ let config = {
     includeAthleteAge: false
 };
 
+function getBibValue(athlete) {
+    return athlete?.Bib != null ? String(athlete.Bib) : "";
+}
+
 function proccessStartListChunkSBD(chunk) {
     const frameData = {
         competition: chunk.competition.Title,
@@ -32,6 +36,9 @@ function proccessStartListChunkSBD(chunk) {
 
     updateFrameData(frameData, "order", chunk.performances, (p) => {
         return String(p.order).padStart(2, "0");
+    });
+    updateFrameData(frameData, "bib", chunk.performances, (p) => {
+        return getBibValue(p.athlete);
     });
     updateFrameData(frameData, "name", chunk.performances, (p) => {
         return getName(p.athlete, config);
@@ -66,6 +73,9 @@ function proccessResultsChunkSBD(chunk) {
 
     updateFrameData(frameData, "rank", chunk.performances, (p) => {
         return String(p.rank).padStart(2, "0");
+    });
+    updateFrameData(frameData, "bib", chunk.performances, (p) => {
+        return getBibValue(p.athlete);
     });
     updateFrameData(frameData, "name", chunk.performances, (p) => {
         return getName(p.athlete, config);
@@ -144,6 +154,7 @@ function describeFrameSBD(fid, M) {
         group: s.Groups.indexOf(g.ID) + 1,
         routine: "R" + (fidx + 1),
         state: config.frameState[f.State],
+        bib: getBibValue(a),
         name: getName(a, config),
         repr: bindTeam(a, config, e),
         eventTitle: e.Title,
