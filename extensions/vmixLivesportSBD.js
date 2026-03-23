@@ -27,6 +27,10 @@ function getBibValue(athlete) {
     return athlete?.Bib != null ? String(athlete.Bib) : "";
 }
 
+function formatScoreValue(scoreVal) {
+    return (scoreVal !== undefined && scoreVal !== null) ? (scoreVal / 1000).toFixed(3) : "";
+}
+
 function proccessStartListChunkSBD(chunk) {
     const frameData = {
         competition: chunk.competition.Title,
@@ -146,8 +150,13 @@ function describeFrameSBD(fid, M) {
     const c = M.Competitions[s.CompetitionID];
     const e = M.Event;
 
-    const scoreVal = f.TMarkTTT_G;
-    const scoreFormatted = (scoreVal !== undefined && scoreVal !== null) ? (scoreVal / 1000).toFixed(3) : "";
+    const getRoutineScore = (routineIdx) => {
+        const routineFrameId = p.Frames?.[routineIdx];
+        const routineFrame = routineFrameId != null ? M.Frames?.[routineFrameId] : null;
+        return formatScoreValue(routineFrame?.TMarkTTT_G);
+    };
+
+    const scoreFormatted = formatScoreValue(f.TMarkTTT_G);
 
     const description = {
         stageID: s.ID,
@@ -161,6 +170,10 @@ function describeFrameSBD(fid, M) {
         competitionTitle: c.Title,
         logo: bindTeamFlag(a, config, OVS, e),
         score: scoreFormatted,
+        scoreTotal: formatScoreValue(p.MarkTTT_G),
+        scoreR1: getRoutineScore(0),
+        scoreR2: getRoutineScore(1),
+        scoreR3: getRoutineScore(2),
         HL_G: f.HL_G ?? "",
         RunType: f.RunType_G ?? f.RunType ?? ""
     };
