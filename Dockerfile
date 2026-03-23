@@ -1,4 +1,4 @@
-FROM node:24
+FROM node:24-slim
 
 RUN mkdir -p /home/node/sporttech.io/api-ext/node_modules && chown -R node:node /home/node/sporttech.io/api-ext
 
