@@ -203,9 +203,49 @@ function onActiveGroups() {
     return rows;
 }
 
+function onStageRoutines(stageIds) {
+    const stageIdList = String(stageIds ?? "")
+        .split("-")
+        .filter((sid) => !Number.isNaN(Number(sid)))
+        .map((sid) => Number(sid));
+    const rows = [];
+    for (const sid of stageIdList) {
+        const s = M?.Stages?.[sid];
+        if (!s || !Array.isArray(s.Groups)) {
+            continue;
+        }
+        for (const gid of s.Groups) {
+            const g = M?.Groups?.[gid];
+            if (!g || !Array.isArray(g.Performances)) {
+                continue;
+            }
+            for (const pid of g.Performances) {
+                const p = M?.Performances?.[pid];
+                if (!p || !Array.isArray(p.Frames)) {
+                    continue;
+                }
+                for (const [fidx, fid] of p.Frames.entries()) {
+                    if (fidx >= s.PerfomanceFramesLimit) {
+                        break;
+                    }
+                    if (M?.Frames?.[fid] === undefined) {
+                        continue;
+                    }
+                    rows.push(describeFrameSBD(fid, M));
+                }
+            }
+        }
+    }
+    return rows;
+}
+
 export async function register(app, model, addUpdateListner) {
     M = model;
     [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_SBD_FILE", config);
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
+    app.get(config.root + '/stageroutines/:sids', (req, res) => {
+        const data = onStageRoutines(req.params.sids);
+        res.json(data);
+    });
 }
 
