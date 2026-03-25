@@ -38,6 +38,14 @@ function getShortInfo(athlete) {
     return config?.athletes?.[bib]?.shortInfo ?? "";
 }
 
+function getPhotoURL(athlete) {
+    // Different OVS/model variants may use different casing for photo URL field.
+    return (
+        athlete?.PhotoURL ??
+        ""
+    );
+}
+
 function formatScoreValue(scoreVal) {
     return (scoreVal !== undefined && scoreVal !== null) ? (scoreVal / 1000).toFixed(3) : "";
 }
@@ -107,6 +115,7 @@ function proccessStartListChunkSBD(chunk) {
     if (config.displayShortInfo === true) {
         updateFrameData(frameData, "shortInfo", chunk.performances, (p) => getShortInfo(p.athlete));
     }
+    updateFrameData(frameData, "PhotoURL", chunk.performances, (p) => getPhotoURL(p.athlete));
 
     frameData.event = chunk.event.Title;
     frameData.eventSubtitle = chunk.event.Subtitle;
@@ -163,6 +172,7 @@ function proccessResultsChunkSBD(chunk) {
     if (config.displayShortInfo === true) {
         updateFrameData(frameData, "shortInfo", chunk.performances, (p) => getShortInfo(p.athlete));
     }
+    updateFrameData(frameData, "PhotoURL", chunk.performances, (p) => getPhotoURL(p.athlete));
 
     frameData.event = chunk.event.Title;
     frameData.eventSubtitle = chunk.event.Subtitle;
@@ -240,6 +250,7 @@ function describeFrameSBD(fid, M) {
     if (config.displayShortInfo === true) {
         description.shortInfo = getShortInfo(a);
     }
+    description.PhotoURL = getPhotoURL(a);
 
     return description;
 }
