@@ -12,6 +12,7 @@
   "apparatus": {},
   "splitRepresentingByComma": true,
   "SplitNameAndPatronimicInGivenName": true,
-  "includeAthleteAge": true
+  "includeAthleteAge": true,
+  "locale": "en"
 }
 

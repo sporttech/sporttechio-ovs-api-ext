@@ -20,7 +20,8 @@ let config = {
     root: "/vmix/sbd",
     frameState: {},
     apparatus: {},
-    includeAthleteAge: false
+    includeAthleteAge: false,
+    locale: "en"
 };
 
 function getBibValue(athlete) {
@@ -29,6 +30,42 @@ function getBibValue(athlete) {
 
 function formatScoreValue(scoreVal) {
     return (scoreVal !== undefined && scoreVal !== null) ? (scoreVal / 1000).toFixed(3) : "";
+}
+
+function formatYearsAgeText(yearsStr, locale = "en") {
+    if (yearsStr === undefined || yearsStr === null || yearsStr === "") {
+        return "";
+    }
+    const yearsNum = Number(yearsStr);
+    if (Number.isNaN(yearsNum)) {
+        return "";
+    }
+
+    const lang = String(locale ?? "en").toLowerCase();
+    const isRu = lang.startsWith("ru");
+
+    if (isRu) {
+        // Russian pluralization rules for years:
+        // 1 год, 2-4 года, 5-20 лет, 21 год, 22-24 года, 25-... лет
+        const mod100 = yearsNum % 100;
+        const mod10 = yearsNum % 10;
+
+        let noun = "лет";
+        if (mod10 === 1 && mod100 !== 11) {
+            noun = "год";
+        } else if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) {
+            noun = "года";
+        }
+
+        return `${yearsStr} ${noun}`;
+    }
+
+    // Default: English
+    return `${yearsStr} ${yearsNum === 1 ? "year" : "years"}`;
+}
+
+function formatAthleteAgeText(athlete, locale) {
+    return formatYearsAgeText(fullYearsFromDob(athlete), locale);
 }
 
 function proccessStartListChunkSBD(chunk) {
@@ -55,6 +92,7 @@ function proccessStartListChunkSBD(chunk) {
     });
     if (config.includeAthleteAge === true) {
         updateFrameData(frameData, "age", chunk.performances, (p) => fullYearsFromDob(p.athlete));
+        updateFrameData(frameData, "ageText", chunk.performances, (p) => formatAthleteAgeText(p.athlete, config.locale));
     }
 
     frameData.event = chunk.event.Title;
@@ -107,6 +145,7 @@ function proccessResultsChunkSBD(chunk) {
     updateFrameData(frameData, "runTypeR3", chunk.performances, (p) => p.runTypeR3 ?? "");
     if (config.includeAthleteAge === true) {
         updateFrameData(frameData, "age", chunk.performances, (p) => fullYearsFromDob(p.athlete));
+        updateFrameData(frameData, "ageText", chunk.performances, (p) => formatAthleteAgeText(p.athlete, config.locale));
     }
 
     frameData.event = chunk.event.Title;
@@ -178,7 +217,9 @@ function describeFrameSBD(fid, M) {
         RunType: f.RunType_G ?? f.RunType ?? ""
     };
     if (config.includeAthleteAge === true) {
-        description.age = fullYearsFromDob(a);
+        const ageYears = fullYearsFromDob(a);
+        description.age = ageYears;
+        description.ageText = formatYearsAgeText(ageYears, config.locale);
     }
 
     return description;
