@@ -17,15 +17,25 @@ let OVS = "";
 
 let config = {
     teams: {},
+    athletes: {},
     root: "/vmix/sbd",
     frameState: {},
     apparatus: {},
     includeAthleteAge: false,
+    displayShortInfo: false,
     locale: "en"
 };
 
 function getBibValue(athlete) {
     return athlete?.Bib != null ? String(athlete.Bib) : "";
+}
+
+function getShortInfo(athlete) {
+    const bib = getBibValue(athlete);
+    if (bib === "") {
+        return "";
+    }
+    return config?.athletes?.[bib]?.shortInfo ?? "";
 }
 
 function formatScoreValue(scoreVal) {
@@ -94,6 +104,9 @@ function proccessStartListChunkSBD(chunk) {
         updateFrameData(frameData, "age", chunk.performances, (p) => fullYearsFromDob(p.athlete));
         updateFrameData(frameData, "ageText", chunk.performances, (p) => formatAthleteAgeText(p.athlete, config.locale));
     }
+    if (config.displayShortInfo === true) {
+        updateFrameData(frameData, "shortInfo", chunk.performances, (p) => getShortInfo(p.athlete));
+    }
 
     frameData.event = chunk.event.Title;
     frameData.eventSubtitle = chunk.event.Subtitle;
@@ -146,6 +159,9 @@ function proccessResultsChunkSBD(chunk) {
     if (config.includeAthleteAge === true) {
         updateFrameData(frameData, "age", chunk.performances, (p) => fullYearsFromDob(p.athlete));
         updateFrameData(frameData, "ageText", chunk.performances, (p) => formatAthleteAgeText(p.athlete, config.locale));
+    }
+    if (config.displayShortInfo === true) {
+        updateFrameData(frameData, "shortInfo", chunk.performances, (p) => getShortInfo(p.athlete));
     }
 
     frameData.event = chunk.event.Title;
@@ -220,6 +236,9 @@ function describeFrameSBD(fid, M) {
         const ageYears = fullYearsFromDob(a);
         description.age = ageYears;
         description.ageText = formatYearsAgeText(ageYears, config.locale);
+    }
+    if (config.displayShortInfo === true) {
+        description.shortInfo = getShortInfo(a);
     }
 
     return description;

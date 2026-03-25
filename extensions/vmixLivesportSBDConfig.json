@@ -2,6 +2,8 @@
   "root": "/vmix/sbd",
   "teams": {
   },
+  "athletes": {
+  },
   "frameState": {
     "0": "NSTART",
     "1": "PERFORM",
@@ -13,6 +15,7 @@
   "splitRepresentingByComma": true,
   "SplitNameAndPatronimicInGivenName": true,
   "includeAthleteAge": true,
+  "displayShortInfo": false,
   "locale": "en"
 }
 
