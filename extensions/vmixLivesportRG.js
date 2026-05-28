@@ -138,13 +138,13 @@ function onApptResultsLists(s_sids, chunkSize, appt) {
         if (!stage) {
             return [];
         }
-        return splitResultsChunks(data, max, sid, 
-            getPerformanceRepresentation, 
-            p => getApptRank(p, stage, appt, data), 
-            p => getApptScore(p, stage, appt, data),
-            addPerformanceDescription,
-            addChunkDescription
-        );
+        return splitResultsChunks(data, max, sid, {
+            getRepr: getPerformanceRepresentation,
+            getRank: p => getApptRank(p, stage, appt, data),
+            getScore: p => getApptScore(p, stage, appt, data),
+            extendPerformance: addPerformanceDescription,
+            extendChunk: addChunkDescription,
+        });
     }
     return transformIds(s_sids, chunkSize, M, splitResults, proccessResultsChunk);
 }
