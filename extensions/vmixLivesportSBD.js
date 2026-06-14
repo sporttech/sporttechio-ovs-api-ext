@@ -86,6 +86,57 @@ function formatAthleteAgeText(athlete, locale) {
     return formatYearsAgeText(fullYearsFromDob(athlete), locale);
 }
 
+function computeBlocksFromStage(stage) {
+    // SBD constants (from j3/ovs/SBD/stage.go and stage_gen.ts)
+    const Section_OVERALL = 0;
+    const SECTIONS_MAX = 11;
+    const SectionNoBlock = 0;
+    const SectionBlock_Overall = 1;
+    const SectionBlock_1 = 2;
+    const SECTION_BLOCKS_MAX = 12;
+
+    const usedBlocks = new Set();
+    for (let sect = Section_OVERALL; sect < SECTIONS_MAX; sect++) {
+        const rawBlockId = stage?.SectionBlocks?.[sect] ?? stage?.SectionBlocks?.[String(sect)];
+        const blockId = Number(rawBlockId);
+        if (!Number.isFinite(blockId)) {
+            continue;
+        }
+        if (blockId === SectionNoBlock) {
+            continue;
+        }
+        usedBlocks.add(blockId);
+    }
+
+    const blocks = [];
+    for (let blockId = SectionBlock_1; blockId < SECTION_BLOCKS_MAX; blockId++) {
+        if (usedBlocks.has(blockId)) {
+            blocks.push(blockId);
+        }
+    }
+    if (usedBlocks.has(SectionBlock_Overall)) {
+        blocks.push(SectionBlock_Overall);
+    }
+
+    return blocks;
+}
+
+function getJMark(frame, blockId, judgeId) {
+    const jm = frame?.JMarks;
+    if (jm === undefined || jm === null) {
+        return "";
+    }
+
+    const v1 = jm?.[blockId]?.[judgeId];
+    const v2 = jm?.[String(blockId)]?.[judgeId];
+    const v3 = jm?.[blockId]?.[String(judgeId)];
+    const v4 = jm?.[String(blockId)]?.[String(judgeId)];
+    const v =
+        v1 ?? v2 ?? v3 ?? v4;
+
+    return (typeof v === "number" && Number.isFinite(v)) ? v : "";
+}
+
 function proccessStartListChunkSBD(chunk) {
     const frameData = {
         competition: chunk.competition.Title,
@@ -251,6 +302,19 @@ function describeFrameSBD(fid, M) {
         description.shortInfo = getShortInfo(a);
     }
     description.PhotoURL = getPhotoURL(a);
+
+    const judgesCount = Number(s?.JudgesCount ?? 0);
+    if (Number.isFinite(judgesCount) && judgesCount > 0) {
+        const blocks = computeBlocksFromStage(s);
+        if (blocks.length > 0) {
+            for (let bIndex = 0; bIndex < blocks.length; bIndex++) {
+                for (let jIndex = 0; jIndex < judgesCount; jIndex++) {
+                    const key = "J" + (jIndex + 1) + "_B" + (bIndex + 1);
+                    description[key] = getJMark(f, blocks[bIndex], jIndex);
+                }
+            }
+        }
+    }
 
     return description;
 }
