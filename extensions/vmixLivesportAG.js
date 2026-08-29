@@ -581,7 +581,7 @@ function formatTeamScore(stage, score) {
 	if (score === undefined || score === null || score === "") {
 		return "";
 	}
-	const isVersusMode = stage?.CalcOptions?.includes(13);
+	const isVersusMode = stage?.CalcOptions?.includes(13) || stage?.CalcOptions?.includes(24);
 	return isVersusMode ? score.toString() : (score / 1000).toFixed(3);
 }
 
