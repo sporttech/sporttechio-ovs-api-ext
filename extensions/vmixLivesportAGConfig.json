@@ -66,7 +66,9 @@
         "7":  { "name": "HBAR",     "nameLocalised": "Barra Fixa",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/FIXA.png"},
         "8":  { "name": "UBAR",     "nameLocalised": "Barras Assimétricas",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/ASSIMETRICAS.png"},
         "9":  { "name": "BEAM",     "nameLocalised": "Trave",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/TRAVE.png"},
-        "10": { "name": "REST",     "nameLocalised": "Descanso",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"}
+        "10": { "name": "REST",     "nameLocalised": "Descanso",     "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"},
+        "13": { "name": "CH1",      "nameLocalised": "CH1",      "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"},
+        "14": { "name": "CH2",      "nameLocalised": "CH2",      "icon": "https://sporttech-io-s3.eu-central-1.linodeobjects.com/2025-AG-BRA/ICONES/NONE.png"}
     },
     "filterSessionAptStartListFromAthletesWithoutSetApptOrder": true,
     "splitRepresentingByComma": true,
