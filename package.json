@@ -10,7 +10,9 @@
     "docker:build": "docker build --platform linux/amd64 -t sporttech.io/api-ext .",
     "docker:tag": "docker tag sporttech.io/api-ext psholukha/sporttech.io-api-ext",
     "docker:push": "docker push psholukha/sporttech.io-api-ext",
-    "docker:deploy": "npm run docker:build && npm run docker:tag && npm run docker:push"
+    "docker:deploy": "npm run docker:build && npm run docker:tag && npm run docker:push",
+    "pack:update": "node scripts/pack-update.js",
+    "pack:full": "node scripts/pack-update.js --with-modules"
   },
   "keywords": [],
   "author": "",
