@@ -82,15 +82,16 @@ function renderEndpoint(endpoint) {
 
     const parameters = endpoint.parameters || [];
     if (parameters.length === 0) {
-        const link = element('a', 'endpoint-link', `${window.location.origin}${endpoint.path}`);
-        link.href = endpoint.path;
+        const link = element('a', 'endpoint-link');
+        link.setAttribute('href', endpoint.path.replace(/^\/+/, ''));
+        link.textContent = link.href;
         link.target = '_blank';
         link.rel = 'noopener';
         card.append(
             heading,
             link,
             element('div', 'parameters'),
-            createCopyButton(() => `${window.location.origin}${endpoint.path}`)
+            createCopyButton(() => link.href)
         );
         return card;
     }
@@ -144,9 +145,14 @@ function renderEndpoint(endpoint) {
             parameter.name,
             readControl(controls.get(parameter.name), parameter)
         ]));
-        const result = buildEndpointUrl(endpoint, values, window.location.origin);
-        link.textContent = result.valid ? result.url : endpoint.path;
-        link.href = result.valid ? result.url : '';
+        const result = buildEndpointUrl(endpoint, values);
+        if (result.valid) {
+            link.setAttribute('href', result.path.replace(/^\/+/, ''));
+            link.textContent = link.href;
+        } else {
+            link.removeAttribute('href');
+            link.textContent = endpoint.path;
+        }
         link.classList.toggle('disabled', !result.valid);
         link.setAttribute('aria-disabled', String(!result.valid));
         copy.disabled = !result.valid;
@@ -202,7 +208,7 @@ async function copyText(value) {
 async function loadCatalog() {
     const container = document.querySelector('#endpoint-list');
     try {
-        const response = await fetch('/endpoints');
+        const response = await fetch('endpoints');
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         container.replaceChildren(...data.routes.map(renderEndpoint));

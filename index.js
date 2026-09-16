@@ -403,8 +403,9 @@ app.use((req, res) => {
             <head>
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
+                <base href="/">
                 <title>sporttech.io API endpoints</title>
-                <link rel="stylesheet" href="/endpoints.css">
+                <link rel="stylesheet" href="endpoints.css">
             </head>
             <body>
                 <main>
@@ -417,7 +418,7 @@ app.use((req, res) => {
                     </header>
                     <section id="endpoint-list" aria-live="polite">Loading endpoints…</section>
                 </main>
-                <script type="module" src="/endpointCatalog.js"></script>
+                <script type="module" src="endpointCatalog.js"></script>
             </body>
         </html>
     `);
