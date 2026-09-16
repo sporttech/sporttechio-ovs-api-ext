@@ -88,6 +88,7 @@ function athleteValue(athlete, event, field) {
         if (field === 'repr') return bindTeam(athlete, config, event);
         if (field === 'repr2') return bindTeam2(athlete, config, event);
         if (field === 'logo') return bindTeamFlag(athlete, config, OVS, event);
+        if (field === 'photo') return athlete?.PhotoURL ?? '';
         return '';
     }
     const resolved = profile(athlete, event);
@@ -165,6 +166,7 @@ function proccessStartListChunk(chunk) {
 	updateFrameData(frameData, "name", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'name'));
 	updateFrameData(frameData, "repr", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'repr'));
 	updateFrameData(frameData, "logo", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'logo'));
+	updateFrameData(frameData, "PhotoURL", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'photo'));
 	addAthleteColumns(frameData, chunk.performances, chunk.event);
 	if (config.AddRawRepresentingColumn === true) {
 		updateFrameData(frameData, "rawRepr", chunk.performances, ( p ) => getRawRepresenting(p.athlete));
@@ -195,6 +197,7 @@ function proccessSessionChunk(chunk) {
         updateFrameData(frameData, "repr2", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'repr2'));
     }
 	updateFrameData(frameData, "logo", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'logo'));
+	updateFrameData(frameData, "PhotoURL", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'photo'));
 	if (config.AddRawRepresentingColumn === true) {
 		updateFrameData(frameData, "rawRepr", chunk.performances, ( p ) => getRawRepresenting(p.athlete));
 	}
@@ -250,6 +253,7 @@ function proccessResultsChunk(chunk) {
         updateFrameData(frameData, "repr2", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'repr2'));
     }
 	updateFrameData(frameData, "logo", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'logo'));
+	updateFrameData(frameData, "PhotoURL", chunk.performances, p => athleteValue(p.athlete, chunk.event, 'photo'));
 	if (config.AddRawRepresentingColumn === true) {
 		updateFrameData(frameData, "rawRepr", chunk.performances, ( p ) => getRawRepresenting(p.athlete));
 	}
@@ -850,6 +854,7 @@ function buildGroupRows(groups) {
                     eventTitle: e.Title,
                     competitionTitle: c.Title,
                     logo: athleteValue(a, e, 'logo'),
+                    PhotoURL: athleteValue(a, e, 'photo'),
                     appIcon: config.apparatus[aptID].icon,
                     scorePrevRoutine: undefined,
                     scoreAllRound: p.MarkAllRoundSummaryTTT_G ? (p.MarkAllRoundSummaryTTT_G / 1000).toFixed(3) : undefined,

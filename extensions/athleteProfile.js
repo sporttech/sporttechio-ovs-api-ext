@@ -48,6 +48,7 @@ export function resolveAthleteProfile(athlete, model, config, event, ovsBib) {
         level: preferred(athlete?.Level, record.level, config),
         city: preferred(cityFromOvs, record.city ?? team?.city, config),
         accolades: record.accolades ?? '',
+        photo: preferred(athlete?.PhotoURL, record.photo, config),
         representing: value(record.representing, value(team?.representing, selected)),
         rawRepresenting: raw
     };

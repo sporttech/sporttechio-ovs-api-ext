@@ -18,15 +18,17 @@ test('MatchAthleteBy reads a direct OVS field and rejects ambiguous or missing k
 });
 
 test('field priority and representing overrides work independently of the match field', () => {
-    const athlete = { Bib: 255, GivenName: 'Иван', Surname: 'Иванов', Level: 'МС', DateOfBirth: '2000-01-01', Representing: 'Россия, Москва' };
+    const athlete = { Bib: 255, GivenName: 'Иван', Surname: 'Иванов', Level: 'МС', DateOfBirth: '2000-01-01', Representing: 'Россия, Москва', PhotoURL: 'https://ovs.example/a.jpg' };
     const model = { Athletes: { 1: athlete } };
-    const config = { MatchAthleteBy: 'Bib', CityRepresentingPart: 'after', RepresentingPart: 'before', teams: { A: { city: 'Казань', representing: 'АГГА' } }, athletes: { 255: { name: 'Ваня Иванов', age: 18, level: 'КМС', city: 'Владимир', accolades: 'Призер', team: 'A', representing: 'Команда А' } } };
+    const config = { MatchAthleteBy: 'Bib', CityRepresentingPart: 'after', RepresentingPart: 'before', teams: { A: { city: 'Казань', representing: 'АГГА' } }, athletes: { 255: { name: 'Ваня Иванов', age: 18, level: 'КМС', city: 'Владимир', accolades: 'Призер', photo: 'https://cfg.example/a.jpg', team: 'A', representing: 'Команда А' } } };
     assert.equal(representingPart(athlete.Representing, config, {}), 'Россия');
     assert.equal(resolveAthleteProfile(athlete, model, { ...config, AthleteFieldPriority: 'config' }, {}, '255').city, 'Владимир');
+    assert.equal(resolveAthleteProfile(athlete, model, { ...config, AthleteFieldPriority: 'config' }, {}, '255').photo, 'https://cfg.example/a.jpg');
     const ovs = resolveAthleteProfile(athlete, model, { ...config, AthleteFieldPriority: 'ovs' }, {}, '255');
     assert.equal(ovs.city, 'Москва');
     assert.equal(ovs.level, 'МС');
     assert.equal(ovs.accolades, 'Призер');
+    assert.equal(ovs.photo, 'https://ovs.example/a.jpg');
     assert.equal(ovs.representing, 'Команда А');
     assert.equal(resolveAthleteProfile({ ...athlete, Representing: 'АГГА' }, { Athletes: { 1: { ...athlete, Representing: 'АГГА' } } }, { ...config, AthleteFieldPriority: 'ovs' }, {}, '255').city, 'Владимир');
 });
@@ -42,10 +44,10 @@ test('AG rows are enriched and versus team points keep their integer scale', asy
         RepresentingPart: 'after', CityRepresentingPart: 'after',
         AddRawRepresentingColumn: true, AddRepr2Column: false,
         teams: { A: { name: 'АГГА', description: 'Описание', results: { GPL24: 'ГПЛ 2024 — золото', GPL25: 'ГПЛ 2025 — бронза' }, flag: '' } },
-        athletes: { 255: { bib: '255', name: 'Иван Иванов', age: 18, level: 'МС', city: 'Москва', accolades: 'Чемпион', team: 'A' } },
+        athletes: { 255: { bib: '255', name: 'Иван Иванов', age: 18, level: 'МС', city: 'Москва', accolades: 'Чемпион', photo: 'https://cfg.example/ivan.jpg', team: 'A' } },
         apparatus: { 1: { name: 'FLOOR', icon: '' } }, frameState: { 3: 'PUBLISHED' }
     };
-    const athlete = { ID: 1, Bib: 255, ExternalID: 50, GivenName: 'Иван', Surname: 'Иванов', Representing: 'Россия, Москва' };
+    const athlete = { ID: 1, Bib: 255, ExternalID: 50, GivenName: 'Иван', Surname: 'Иванов', Representing: 'Россия, Москва', PhotoURL: 'https://ovs.example/ivan.jpg' };
     const performance = { ID: 1, Athletes: [1], GroupID: 1, Team: 1, Rank_G: 1, TeamRank_G: 1,
         MarkTTT_G: 14000, TeamMarkTTT_G: 27, MarkAllRoundTeamSummaryTTT_G: 54,
         PrevPerformanceID_G: 2, FrameTeamMarks_G: [27], Frames: [1], FramePriorities: [1], FrameRanks_G: [1] };
@@ -73,8 +75,10 @@ test('AG rows are enriched and versus team points keep their integer scale', asy
         assert.equal(start.name_n1, 'Иван Иванов');
         assert.equal(start.city_n1, 'Москва');
         assert.equal(start.accolades_n1, 'Чемпион');
+        assert.equal(start.PhotoURL_n1, 'https://cfg.example/ivan.jpg');
         const results = call('/vmix/ag/results/:sids/chunk/:size', { sids: '1', size: '8' })[0];
         assert.equal(results.level_n1, 'МС');
+        assert.equal(results.PhotoURL_n1, 'https://cfg.example/ivan.jpg');
         const team = call('/vmix/ag/teamresults/:sids/chunk/:size', { sids: '1', size: '8' })[0];
         assert.equal(team.score_n1, '27');
         assert.equal(team.pscore_n1, '10');
@@ -115,6 +119,9 @@ test('AG rows are enriched and versus team points keep their integer scale', asy
         const plainStart = call('/vmix/ag/startlists/:sids/chunk/:size', { sids: '1', size: '8' })[0];
         assert.equal(plainStart.city_n1, undefined);
         assert.equal(plainStart.bib_n1, '255');
+        assert.equal(plainStart.PhotoURL_n1, 'https://ovs.example/ivan.jpg');
+        const activePhoto = call('/vmix/ag/active-groups')[0];
+        assert.equal(activePhoto.PhotoURL, 'https://ovs.example/ivan.jpg');
         delete athlete.Bib;
         assert.equal(call('/vmix/ag/startlists/:sids/chunk/:size', { sids: '1', size: '8' })[0].bib_n1, '50');
         athlete.Bib = 255;
