@@ -44,6 +44,10 @@ npx nodemon index.js
 
 ## AG participant and team enrichment
 
+Event-specific production configs are stored in `sporttech.io-devops`; this repository contains reusable examples only. For local work, put private or event-specific files in the ignored `extensions/local-configs/` directory. Config paths are resolved relative to `extensions/vmixLivesportCommon.js`, for example `CONFIG_VMIX_LIVESPORT_AG_FILE=./local-configs/vmixLivesportAGGPL2026Config.json`.
+
+The GPL 2026 deployment sample is maintained in `sporttech.io-devops/api-ext/roles/shared/vmix-config-samples/RU-AG-GPL-2026/`. The existing `vmixLivesportAGConfig.json` remains the generic AG example in this repository.
+
 `MatchAthleteBy` names a direct field of the OVS `Athlete` object, such as `Bib`, `ExternalID`, `ID`, or `GUID`. Keys in `athletes` must contain values of that field; numeric and string values match equally. Missing or duplicate OVS keys are not enriched. The `bib` output uses `Athlete.Bib` when available and falls back to `ExternalID` for older OVS versions; `UseAthleteIDInsteadOfBib` continues to override both with the internal `Athlete.ID`.
 
 `GET /vmix/ag/teamresults/:sids/chunk/:size` accepts optional `sortBy=TeamID` to order rows by `teamID` instead of team rank (default). The `rank` field still shows the OVS team rank.
