@@ -63,9 +63,26 @@ To extend API one should create `.js` file inside the extensions folder, i.e. `e
 + Module should export `register` function:
   + `export async function register(app, model, addUpdateListner)`
   + This function will be called on application start
-  + `app` is express instance, use it to add the endpoints
+  + `app` is an Express instance
   + `model` is the data object that will contain up-to-date copy of the data from OVS
   + `addUpdateListner` callback function allow to register callback for any model update
++ Register extension routes with `registerEndpoint` from `logRoutes.js`. Its descriptor is exposed by `/endpoints` and rendered as an interactive form on the adapter home page:
+
+```js
+registerEndpoint(app, {
+    method: 'get',
+    path: '/example/:sids',
+    title: 'Example',
+    parameters: [{
+        name: 'sids', in: 'path', control: 'text', required: true,
+        defaultValue: '0', label: 'Stage IDs'
+    }],
+    variants: []
+}, handler);
+```
+
+Parameter controls can be `text`, `number`, or `enum`; parameters can be placed in the path or query string. Enum options use `{ value, label }`. Set `multiple: true` and `separator: "-"` for a multi-value path parameter. Each named variant contains a `label` and a `values` object used to prefill controls.
+
 + To load extension on boot edit .env file, add extension name to `EXTENSIONS` section i.e. `EXTENSIONS=newEndpoint`
 + One can use additional enviroment variables, i.e. to pass config filename to the extension
 
@@ -98,4 +115,4 @@ docker push psholukha/sporttech.io-api-ext
 * Stop running container: `docker stop CONTRAINER_ID`
 * List all containers, including stopped: `docker ps -a`
 * Rename container: `docker rename CONTAINER_ID NEW_NAME`
-* Run image: 
+* Run image:

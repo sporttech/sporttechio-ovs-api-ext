@@ -9,8 +9,10 @@ import {
     bindTeamFlag,
     recentGroups,
     loadCommonConfig,
-    registerCommonEndpoints
+    registerCommonEndpoints,
+    stageIdsParameter
 } from './vmixLivesportCommon.js';
+import { registerEndpoint } from '../logRoutes.js';
 
 let M = {};
 let OVS = "";
@@ -378,9 +380,11 @@ export async function register(app, model, addUpdateListner) {
     M = model;
     [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_SBD_FILE", config);
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
-    app.get(config.root + '/stageroutines/:sids', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/stageroutines/:sids', title: 'Stage routines',
+        parameters: [stageIdsParameter()]
+    }, (req, res) => {
         const data = onStageRoutines(req.params.sids);
         res.json(data);
     });
 }
-

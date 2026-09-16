@@ -1,8 +1,10 @@
 import { getName, transformIds, splitStartListChunks, splitResultsChunks, splitSessionChunks,
         updateFrameData, bindTeam, bindTeamFlag, recentGroups, 
         loadCommonConfig, getPerformanceRepresentation, getPerformanceRank, getPerformanceScore,
-        registerCommonEndpoints} from './vmixLivesportCommon.js';
+        registerCommonEndpoints, stageIdsParameter, chunkSizeParameter,
+        apparatusParameter} from './vmixLivesportCommon.js';
 import { Disciplines, buildStageAppsDescription, findApparatusFrameIndex } from '../model/RG/stage-apparatus.js';
+import { registerEndpoint } from '../logRoutes.js';
 
 let M = {};
 
@@ -252,11 +254,17 @@ export async function register(app, model, addUpdateListner) {
     [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_RG_FILE", config);
     buildApptMap(config);
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
-    app.get(config.root + '/results/:sids/:appt/chunk/:size', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/results/:sids/:appt/chunk/:size', title: 'Apparatus results',
+        parameters: [stageIdsParameter(), apparatusParameter(config), chunkSizeParameter()]
+    }, (req, res) => {
         const data = onApptResultsLists(req.params.sids, req.params.size, req.params.appt);
         res.json(data);
     });
-    app.get(config.root + '/sessions/:sids/chunk/:size', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/sessions/:sids/chunk/:size', title: 'Sessions',
+        parameters: [stageIdsParameter(), chunkSizeParameter()]
+    }, (req, res) => {
         const data = onSession(req.params.sids, req.params.size) 
         res.json(data);
     });

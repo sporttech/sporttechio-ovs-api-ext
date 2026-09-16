@@ -1,7 +1,9 @@
 import { transformIds, splitStartListChunks, splitResultsChunks, 
         updateFrameData, bindTeam, bindTeamFlag,
         recentGroups, loadCommonConfig, registerCommonEndpoints,
-        recentFrames, F_STATES, F_PUBLISHED} from './vmixLivesportCommon.js';
+        recentFrames, stageIdsParameter, chunkSizeParameter,
+        F_STATES, F_PUBLISHED} from './vmixLivesportCommon.js';
+import { registerEndpoint } from '../logRoutes.js';
 
 let M = {};
 
@@ -390,11 +392,16 @@ export async function register(app, model, addUpdateListner) {
     M = model;
     [OVS, config] = await loadCommonConfig("CONFIG_VMIX_LIVESPORT_TRA_FILE", config);
     registerCommonEndpoints(app, config, M, addUpdateListner, onStartLists, onResultsLists, onActiveGroups);
-    app.get(config.root + '/startlists/:sids/splitroutines/chunk/:size', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/startlists/:sids/splitroutines/chunk/:size', title: 'Split-routine start lists',
+        parameters: [stageIdsParameter(), chunkSizeParameter()]
+    }, (req, res) => {
         const data = onStartListsSplitRoutines(req.params.sids, req.params.size);
         res.json(data);
     });
-    app.get(config.root + '/last-result', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/last-result', title: 'Last result'
+    }, (req, res) => {
         const data = onLastResult();
         res.json(data);
     });

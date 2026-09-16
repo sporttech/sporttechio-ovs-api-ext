@@ -4,7 +4,7 @@ import clc from "cli-color";
 import express from 'express';
 import { internalIpV4Sync } from 'internal-ip';
 import { applyUpdate, isEmptyUpdate } from './model/update.js';
-import { routes, logRoutes } from './logRoutes.js';
+import { logRoutes } from './logRoutes.js';
 import { extend as extendDataRoute } from './routes/data.js';
 import { appendB64GzipParam, appendChunksParam, decodeB64GzipData, createChunkAssembler } from './sse-handler.js';
 
@@ -396,36 +396,36 @@ await loadExtensions();
 
 app.use(express.static('static'));
 app.use((req, res) => {
-    const endpoints = routes.map(r => {
-        // Replace chunk/:size with chunk/8 and :sids with 0
-        let path = r.path;
-        path = path.replace(/chunk\/:size/g, 'chunk/8')
-                  .replace(/:sids/g, '0')
-                  .replace(/:[^/]+/g, '0');
-        return `<li><a href="${path}">${path}</a></li>`;
-    }).join('\n');
-
+    const ovsLink = String(process.env.OVS_URL || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     res.send(`
-        <html>
+        <!doctype html>
+        <html lang="en">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>sporttech.io API endpoints</title>
+                <link rel="stylesheet" href="/endpoints.css">
+            </head>
             <body>
-                <h3>OVS URL:</h3>
-                <p><a href="${process.env.OVS_URL}/">${process.env.OVS_URL}/</a></p>
-                
-                <h3>Last Update:</h3>
-                <p>${model.lastUpdate}</p>
-                
-                <h3>Available Endpoints:</h3>
-                <ul>
-                    ${endpoints}
-                </ul>
+                <main>
+                    <header class="page-header">
+                        <h1>Available endpoints</h1>
+                        <div class="status">
+                            <p>OVS: <a href="${ovsLink}/" target="_blank" rel="noopener">${ovsLink}/</a></p>
+                            <p>Last update: ${model.lastUpdate || 'Waiting for data'}</p>
+                        </div>
+                    </header>
+                    <section id="endpoint-list" aria-live="polite">Loading endpoints…</section>
+                </main>
+                <script type="module" src="/endpointCatalog.js"></script>
             </body>
         </html>
     `);
 })
 
 
+logRoutes(app);
 app.listen(port, () => {
     console.log(clc.bgGreen(`=== sporttech.io API Adapter listening at`), clc.bgCyan(`http://${ip}:${port}`));
     console.log(clc.green(`OVS url:`), clc.bgCyan(`${ovsUrl}/`));
-    logRoutes(app);
 });
