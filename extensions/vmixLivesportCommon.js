@@ -2,6 +2,7 @@ import buffer from "circular-buffer";
 import { readFile } from 'fs/promises';
 import { listTeams } from "../model/query.js";
 import { FrameState } from "../model/constants/frameStates.js";
+import { registerEndpoint } from "../logRoutes.js";
 
 function getName(a, config) {
     let given = a.GivenName || "";
@@ -126,6 +127,9 @@ function setResultsOptionsDefault(options) {
     if (!options.groupPerformances) {
         options.groupPerformances = (pfs) => {return pfs}
     }
+    if (!options.comparePerformances) {
+        options.comparePerformances = (p1, p2) => p1.rank - p2.rank;
+    }
 }
 function splitResultsChunks(data, max, sid, options = {}) {
     setResultsOptionsDefault(options);
@@ -148,9 +152,7 @@ function splitResultsChunks(data, max, sid, options = {}) {
 		}
     }
     performances = options.groupPerformances(performances);
-	performances.sort((p1, p2) => {
-		return p1.rank - p2.rank;
-	});
+	performances.sort(options.comparePerformances);
 	const chunks = [];
 	const chunkSize = max > 0 ? max : performances.length || 1;
 	for (let i = 0; i < performances.length; i += chunkSize) {
@@ -391,27 +393,67 @@ function checkTeams(config, teams) {
 
 function registerCommonEndpoints(app, config, model, addUpdateListner, onStartLists, onResultsLists, onActiveGroups) {
     addUpdateListner(updateFramesInFocus);
-    app.get(config.root + '/recent-frames', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/recent-frames', title: 'Recent frames'
+    }, (req, res) => {
         res.json({ recentFramesInFoucs: recentFrames()});
     });
-    app.get(config.root + '/startlists/:sids/chunk/:size', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/startlists/:sids/chunk/:size', title: 'Start lists',
+        parameters: [stageIdsParameter(), chunkSizeParameter()]
+    }, (req, res) => {
         const data = onStartLists(req.params.sids, req.params.size) 
         res.json(data);
     });
-    app.get(config.root + '/results/:sids/chunk/:size', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/results/:sids/chunk/:size', title: 'Results',
+        parameters: [stageIdsParameter(), chunkSizeParameter()]
+    }, (req, res) => {
         const data = onResultsLists(req.params.sids, req.params.size) 
         res.json(data);
     });
-    app.get(config.root + '/active-groups', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/active-groups', title: 'Active groups'
+    }, (req, res) => {
         const data = onActiveGroups();
         res.json(data);
     });
-    app.get(config.root + '/config', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/config', title: 'Extension config'
+    }, (req, res) => {
         res.json(config);
     });
-    app.get(config.root + '/config/checkTeams', (req, res) => {
+    registerEndpoint(app, {
+        method: 'get', path: config.root + '/config/checkTeams', title: 'Check configured teams'
+    }, (req, res) => {
         res.json(checkTeams(config, listTeams(model)));
     });
+}
+
+function stageIdsParameter() {
+    return {
+        name: 'sids', in: 'path', control: 'text', required: true,
+        defaultValue: '0', label: 'Stage IDs'
+    };
+}
+
+function chunkSizeParameter() {
+    return {
+        name: 'size', in: 'path', control: 'number', required: true,
+        defaultValue: 8, min: 1, label: 'Chunk size'
+    };
+}
+
+function apparatusParameter(config, multiple = false) {
+    const options = Object.values(config.apparatus || {}).map(apparatus => ({
+        value: apparatus.name,
+        label: apparatus.nameLocalised ? `${apparatus.name} — ${apparatus.nameLocalised}` : apparatus.name
+    }));
+    return {
+        name: 'appt', in: 'path', control: 'enum', required: true,
+        defaultValue: multiple ? options.slice(0, 1).map(option => option.value) : (options[0]?.value || ''),
+        label: 'Apparatus', options, multiple, separator: '-'
+    };
 }
 
 
@@ -431,5 +473,8 @@ export {
     recentGroups,
     loadCommonConfig,
     registerCommonEndpoints,
+    stageIdsParameter,
+    chunkSizeParameter,
+    apparatusParameter,
     getPerformanceRepresentation
 };
