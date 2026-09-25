@@ -58,6 +58,8 @@ The GPL 2026 deployment sample is maintained in `sporttech.io-devops/api-ext/rol
 
 In AG versus mode (`CalcModeTeamVersus`), team `score`, `pscore`, `arscore`, and apparatus scores are integer points. Individual routine scores remain gymnastics marks with three decimal places.
 
+`AddApparatusAllRoundScoresToResults` adds per-apparatus all-around contribution columns to `GET /vmix/ag/results/:sids/chunk/:size`, named `ARScore_<APPT>` (for example `ARScore_FLOOR_n1`). Values come from published frames (`TAllRoundMarkTTT_G`, or `MarkAllRoundVaultTTT_G` for vault). `AddApparatusScoresToResults` adds the stage apparatus scores as `Score_<APPT>` from `TMarkTTT_G` / `MarkVaultTTT_G`. `VAULT2` and `REST` are omitted for both flags.
+
 `GET /vmix/ag/stage/:sids/groups` returns the same athlete-per-apparatus rows as `active-groups`, using every group from the requested stage instead of the recent-frame buffer. One stage ID or multiple hyphen-separated IDs are accepted; unknown stages produce no rows.
 
 ## Extending API

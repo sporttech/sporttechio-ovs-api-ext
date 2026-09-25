@@ -207,3 +207,83 @@ test('sortBy=TeamID orders teamresults by teamID while keeping ranks', async () 
         await rm(dir, { recursive: true, force: true });
     }
 });
+
+test('AddApparatusAllRoundScoresToResults and AddApparatusScoresToResults add published apparatus columns to results', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ag-appt-ar-'));
+    const configFile = join(dir, 'config.json');
+    const oldConfig = process.env.CONFIG_VMIX_LIVESPORT_AG_FILE;
+    const oldOvs = process.env.OVS_URL;
+    const config = {
+        root: '/vmix/ag', teams: {},
+        AddApparatusAllRoundScoresToResults: true,
+        AddApparatusScoresToResults: true,
+        apparatus: {
+            1: { name: 'FLOOR', icon: '' },
+            2: { name: 'VAULT', icon: '' },
+            3: { name: 'VAULT2', icon: '' },
+            10: { name: 'REST', icon: '' },
+            4: { name: 'POMMEL', icon: '' }
+        },
+        frameState: { 3: 'PUBLISHED' }
+    };
+    const athlete = { ID: 1, Bib: 1, GivenName: 'A', Surname: 'One', Representing: 'T1' };
+    const performance = {
+        ID: 1, Athletes: [1], GroupID: 1, Rank_G: 1, MarkTTT_G: 28000, MarkAllRoundSummaryTTT_G: 28000,
+        MarkAllRoundVaultTTT_G: 14000, MarkVaultTTT_G: 14250, Frames: [1, 2, 3, 4, 5], FramePriorities: [1, 1, 1, 1, 1], FrameRanks_G: [1, 1, 1, 1, 1]
+    };
+    const model = {
+        Event: { Title: 'GPL' }, Athletes: { 1: athlete },
+        Competitions: { 1: { Title: 'Final', Stages: [1] } },
+        Stages: { 1: { ID: 1, CompetitionID: 1, Groups: [1], FrameTypes: [1, 2, 3, 10, 4], PerfomanceFramesLimit: 5 } },
+        Groups: { 1: { ID: 1, StageID: 1, Performances: [1] } },
+        Performances: { 1: performance },
+        Frames: {
+            1: { ID: 1, PerformanceID: 1, State: 3, TAllRoundMarkTTT_G: 0, TMarkTTT_G: 13500 },
+            2: { ID: 2, PerformanceID: 1, State: 3, TAllRoundMarkTTT_G: 14000, TMarkTTT_G: 14000 },
+            3: { ID: 3, PerformanceID: 1, State: 3, TAllRoundMarkTTT_G: 14100, TMarkTTT_G: 14100 },
+            4: { ID: 4, PerformanceID: 1, State: 3, TAllRoundMarkTTT_G: 0, TMarkTTT_G: 0 },
+            5: { ID: 5, PerformanceID: 1, State: 1, TAllRoundMarkTTT_G: 12500, TMarkTTT_G: 12500 }
+        }
+    };
+    const routes = new Map();
+    try {
+        await writeFile(configFile, JSON.stringify(config));
+        process.env.CONFIG_VMIX_LIVESPORT_AG_FILE = configFile;
+        process.env.OVS_URL = 'http://ovs.example';
+        await register({ get: (path, handler) => routes.set(path, handler) }, model, () => {});
+        const call = () => {
+            let value;
+            routes.get('/vmix/ag/results/:sids/chunk/:size')(
+                { params: { sids: '1', size: '8' } },
+                { json: data => { value = data; } }
+            );
+            return value[0];
+        };
+        const withFlag = call();
+        assert.equal(withFlag.ARScore_FLOOR_n1, '0.000');
+        assert.equal(withFlag.ARScore_VAULT_n1, '14.000');
+        assert.equal(withFlag.ARScore_POMMEL_n1, '');
+        assert.equal(withFlag.Score_FLOOR_n1, '13.500');
+        assert.equal(withFlag.Score_VAULT_n1, '14.250');
+        assert.equal(withFlag.Score_POMMEL_n1, '');
+        assert.equal(withFlag.Score_VAULT2_n1, undefined);
+        assert.equal(withFlag.Score_REST_n1, undefined);
+        assert.equal(withFlag.ARScore_VAULT2_n1, undefined);
+        const liveConfig = (() => {
+            let value;
+            routes.get('/vmix/ag/config')({}, { json: data => { value = data; } });
+            return value;
+        })();
+        liveConfig.AddApparatusAllRoundScoresToResults = false;
+        liveConfig.AddApparatusScoresToResults = false;
+        const withoutFlag = call();
+        assert.equal(withoutFlag.ARScore_FLOOR_n1, undefined);
+        assert.equal(withoutFlag.Score_FLOOR_n1, undefined);
+        assert.equal(withoutFlag.ARScore_VAULT_n1, undefined);
+        assert.equal(withoutFlag.Score_VAULT_n1, undefined);
+    } finally {
+        if (oldConfig === undefined) delete process.env.CONFIG_VMIX_LIVESPORT_AG_FILE; else process.env.CONFIG_VMIX_LIVESPORT_AG_FILE = oldConfig;
+        if (oldOvs === undefined) delete process.env.OVS_URL; else process.env.OVS_URL = oldOvs;
+        await rm(dir, { recursive: true, force: true });
+    }
+});

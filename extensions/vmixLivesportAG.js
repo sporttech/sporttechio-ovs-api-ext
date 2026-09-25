@@ -288,6 +288,8 @@ function proccessResultsChunk(chunk) {
 	updateFrameData(frameData, "frameTeamPoints", chunk.performances, ( p ) => { 
 		return p.frameTeamPoints !== undefined ? String(p.frameTeamPoints) : "";
 	});
+	addApparatusAllRoundScoreColumns(frameData, chunk);
+	addApparatusScoreColumns(frameData, chunk);
 	// Add vault2Details if present
 	if (chunk.performances.some(p => p.vault2Details)) {
 		updateFrameData(frameData, "vault2Details", chunk.performances, ( p ) => {
@@ -445,6 +447,99 @@ function onSession(s_sids, chunkSize, apparatusFilter = null) {
     };
     return transformIds(s_sids, chunkSize, M, splitSessionChunksWithFilter, proccessSessionChunk)
 }
+function forEachStageApparatus(stage, callback) {
+	if (!stage?.FrameTypes) {
+		return;
+	}
+	const framesLimit = stage.PerfomanceFramesLimit || stage.FrameTypes.length;
+	const VAULT2_ID = appMap["VAULT2"];
+	const REST_ID = appMap["REST"];
+	for (let i = 0; i < framesLimit; i++) {
+		const aptID = String(stage.FrameTypes[i]);
+		if (aptID === VAULT2_ID || aptID === REST_ID) {
+			continue;
+		}
+		const apparatus = config.apparatus[aptID];
+		if (!apparatus?.name) {
+			continue;
+		}
+		callback(apparatus.name, i);
+	}
+}
+
+function formatApparatusScoreColumn(value, shouldClear) {
+	if (shouldClear) {
+		return "";
+	}
+	return value !== undefined && value !== null ? (value / 1000).toFixed(3) : "";
+}
+
+function addApparatusAllRoundScoreColumns(frameData, chunk) {
+	if (config.AddApparatusAllRoundScoresToResults !== true) {
+		return;
+	}
+	forEachStageApparatus(chunk.stage, (apptName) => {
+		updateFrameData(frameData, `ARScore_${apptName}`, chunk.performances, ( p ) => {
+			return formatApparatusScoreColumn(p.apparatusAllRoundScores?.[apptName], p._shouldClearScoreAndRank);
+		});
+	});
+}
+
+function addApparatusScoreColumns(frameData, chunk) {
+	if (config.AddApparatusScoresToResults !== true) {
+		return;
+	}
+	forEachStageApparatus(chunk.stage, (apptName) => {
+		updateFrameData(frameData, `Score_${apptName}`, chunk.performances, ( p ) => {
+			return formatApparatusScoreColumn(p.apparatusScores?.[apptName], p._shouldClearScoreAndRank);
+		});
+	});
+}
+
+function collectApparatusAllRoundScores(p, stage, data) {
+	if (!p?.Frames || !data?.Frames) {
+		return {};
+	}
+	const scores = {};
+	forEachStageApparatus(stage, (apptName, i) => {
+		const fid = p.Frames[i];
+		const frame = fid !== undefined ? data.Frames[fid] : null;
+		if (!frame || frame.State !== F_PUBLISHED) {
+			return;
+		}
+		if (apptName === "VAULT") {
+			if (p.MarkAllRoundVaultTTT_G !== undefined && p.MarkAllRoundVaultTTT_G !== null) {
+				scores[apptName] = p.MarkAllRoundVaultTTT_G;
+			}
+		} else if (frame.TAllRoundMarkTTT_G !== undefined && frame.TAllRoundMarkTTT_G !== null) {
+			scores[apptName] = frame.TAllRoundMarkTTT_G;
+		}
+	});
+	return scores;
+}
+
+function collectApparatusScores(p, stage, data) {
+	if (!p?.Frames || !data?.Frames) {
+		return {};
+	}
+	const scores = {};
+	forEachStageApparatus(stage, (apptName, i) => {
+		const fid = p.Frames[i];
+		const frame = fid !== undefined ? data.Frames[fid] : null;
+		if (!frame || frame.State !== F_PUBLISHED) {
+			return;
+		}
+		if (apptName === "VAULT") {
+			if (p.MarkVaultTTT_G !== undefined && p.MarkVaultTTT_G !== null) {
+				scores[apptName] = p.MarkVaultTTT_G;
+			}
+		} else if (frame.TMarkTTT_G !== undefined && frame.TMarkTTT_G !== null) {
+			scores[apptName] = frame.TMarkTTT_G;
+		}
+	});
+	return scores;
+}
+
 function onResultsLists(s_sids, chunkSize) {
     const splitResults = (data, max, sid) => {
         const stage = data?.Stages[sid];
@@ -470,6 +565,13 @@ function onResultsLists(s_sids, chunkSize) {
                 }
                 if (shouldClear) {
                     pout._shouldClearScoreAndRank = true;
+                }
+
+                if (config.AddApparatusAllRoundScoresToResults === true) {
+                    pout.apparatusAllRoundScores = collectApparatusAllRoundScores(p, stage, dataCtx);
+                }
+                if (config.AddApparatusScoresToResults === true) {
+                    pout.apparatusScores = collectApparatusScores(p, stage, dataCtx);
                 }
                 
                 if (p.PenaltyAllRoundIndTTT_G !== undefined && p.PenaltyAllRoundIndTTT_G !== null && p.PenaltyAllRoundIndTTT_G > 0) {

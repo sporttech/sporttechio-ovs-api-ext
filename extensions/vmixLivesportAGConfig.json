@@ -78,5 +78,7 @@
     "ClearScoreAndRankIfNotAllApptsInSession": true,
     "UseAthleteIDInsteadOfBib": true,
     "AddRawRepresentingColumn": true,
-    "AddRepr2Column": true
+    "AddRepr2Column": true,
+    "AddApparatusAllRoundScoresToResults": false,
+    "AddApparatusScoresToResults": false
 }
